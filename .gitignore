@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Python virtual environments ###
+**/.venv/
+**/.venv311/
+.DS_Store
+.venv/
+.venv*/
+model.bin
+**/model.bin
