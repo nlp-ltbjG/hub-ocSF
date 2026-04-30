@@ -1,0 +1,155 @@
+import random
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+
+# ─── 超参数 ────────────────────────────────────────────────
+SEED        = 42
+N_SAMPLES   = 5000          
+MAXLEN      = 5
+EMBED_DIM   = 64
+HIDDEN_DIM  = 64
+LR          = 1e-3
+BATCH_SIZE  = 64          
+EPOCHS      = 30
+TRAIN_RATIO = 0.8
+
+random.seed(SEED)
+torch.manual_seed(SEED)
+
+# ─── 1. 数据生成 ────────────────────────────────────────────
+CHARS = ['我', '他', '她', '它', '们', '吃', '喝', '跑', '走', '看',
+         '听', '说', '写', '读', '买', '卖', '好', '坏', '大', '小']
+
+def generate_one_data():
+    pos = random.randint(0, 4)
+    sentence = []
+    for i in range(5):
+        if i == pos:
+            sentence.append('你')
+        else:
+            sentence.append(random.choice(CHARS))
+    sentence = ''.join(sentence)
+    return sentence, pos
+
+def build_all_data(num):
+    data = []
+    for _ in range(num):
+        data.append(generate_one_data())
+    return data
+
+# ─── 2. 词表构建与编码 ──────────────────────────────────────
+def build_vocab(data):
+    vocab = {'<PAD>': 0, '<UNK>': 1}
+    for sent, _ in data:
+        for ch in sent:
+            if ch not in vocab:
+                vocab[ch] = len(vocab)
+    return vocab
+
+def encode(sent, vocab, maxlen=MAXLEN):
+    ids  = [vocab.get(ch, 1) for ch in sent]
+    ids  = ids[:maxlen]
+    ids += [0] * (maxlen - len(ids))
+    return ids
+
+# ─── 3. 数据集类 ────────────────────────────────────────────
+class TextDataset(Dataset):
+    def __init__(self, data, vocab):
+        self.data = data
+        self.vocab = vocab
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        sent, label = self.data[idx]
+        ids = encode(sent, self.vocab)
+        return torch.tensor(ids, dtype=torch.long), torch.tensor(label, dtype=torch.long)
+
+# ─── 4. 模型定义 ───────────────────────────────────────────
+class TextClassifier(nn.Module):
+    def __init__(self, vocab_size, embed_dim, hidden_dim, num_classes=5):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.rnn = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
+        self.fc = nn.Linear(hidden_dim, num_classes)
+
+    def forward(self, x):
+        x = self.embedding(x)
+        out, _ = self.rnn(x)
+        out = out[:, -1, :]
+        logits = self.fc(out)
+        return logits
+
+# ─── 5. 训练流程 ────────────────────────────────────────────
+if __name__ == "__main__":
+    # 生成数据 & 手动划分训练/测试集（不用sklearn）
+    all_data = build_all_data(N_SAMPLES)
+    split_idx = int(len(all_data) * TRAIN_RATIO)
+    train_data = all_data[:split_idx]
+    test_data = all_data[split_idx:]
+
+    # 构建词表
+    vocab = build_vocab(all_data)
+    vocab_size = len(vocab)
+
+    # 构建数据集 & 加载器
+    train_dataset = TextDataset(train_data, vocab)
+    test_dataset  = TextDataset(test_data, vocab)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader  = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+    # 模型、损失、优化器
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = TextClassifier(vocab_size, EMBED_DIM, HIDDEN_DIM).to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+
+    print("开始训练...\n")
+    for epoch in range(EPOCHS):
+        model.train()
+        total_loss = 0
+        for ids, labels in train_loader:
+            ids, labels = ids.to(device), labels.to(device)
+            outputs = model(ids)
+            loss = criterion(outputs, labels)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+
+        # 测试集评估（不用sklearn，自己算准确率）
+        model.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for ids, labels in test_loader:
+                ids, labels = ids.to(device), labels.to(device)
+                outputs = model(ids)
+                preds = torch.argmax(outputs, dim=1)
+                correct += (preds == labels).sum().item()
+                total += labels.size(0)
+
+        acc = correct / total
+        print(f"Epoch [{epoch+1:2d}/{EPOCHS}] | Loss: {total_loss:.4f} | Test Acc: {acc:.4f}")
+
+    # 推理测试
+    print("\n===== 模型测试 =====")
+    test_sentences = [
+        "我你他她它",  # 你在第 2 位 → 标签 1
+        "吃好喝好你",  # 你在第 5 位 → 标签 4
+        "你跑跳吃喝",  # 你在第 1 位 → 标签 0
+        "好坏你大小"   # 你在第 3 位 → 标签 2
+    ]
+
+    model.eval()
+    with torch.no_grad():
+        for sent in test_sentences:
+            ids = encode(sent, vocab)
+            tensor_in = torch.tensor([ids], dtype=torch.long).to(device)
+            out = model(tensor_in)
+            pred_pos = torch.argmax(out).item()
+            print(f"句子：{sent}")
+            print(f"模型判断「你」在第 {pred_pos+1} 位\n")
