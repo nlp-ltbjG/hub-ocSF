@@ -1,0 +1,106 @@
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+
+import torch
+import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+class TorchModel(nn.Module):
+    def __init__(self, input_size, class_num):
+        super(TorchModel, self).__init__()
+        self.linear = nn.Linear(input_size, class_num)  
+        self.loss = nn.CrossEntropyLoss()  
+
+    def forward(self, x, y=None):
+        logits = self.linear(x)
+        if y is not None:
+            return self.loss(logits, y)
+        else:
+            return logits
+
+
+def build_sample(input_dim):
+    x = np.random.random(input_dim)
+    y = np.argmax(x)  
+    return x, y
+
+def build_dataset(total_sample_num, input_dim):
+    X = []
+    Y = []
+    for i in range(total_sample_num):
+        x, y = build_sample(input_dim)
+        X.append(x)
+        Y.append(y)
+    return torch.FloatTensor(X), torch.LongTensor(Y)
+
+# 测试代码
+def evaluate(model, input_dim, class_num):
+    model.eval()
+    test_sample_num = 100
+    x, y = build_dataset(test_sample_num, input_dim)
+    correct = 0
+    with torch.no_grad():
+        logits = model(x)
+        pred = torch.argmax(logits, dim=1)
+        correct = (pred == y).sum().item()
+    acc = correct / len(y)
+    print(f"准确率：{acc:.4f}")
+    return acc
+
+def main():
+    epoch_num = 20
+    batch_size = 20
+    train_sample = 5000
+    input_size = 5    
+    class_num = 5     
+    learning_rate = 0.01
+
+    model = TorchModel(input_size, class_num)
+    optim = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    log = []
+
+    # 创建训练集
+    train_x, train_y = build_dataset(train_sample, input_size)
+
+    # 训练过程
+    for epoch in range(epoch_num):
+        model.train()
+        watch_loss = []
+        for batch_index in range(train_sample // batch_size):
+            x = train_x[batch_index * batch_size : (batch_index + 1) * batch_size]
+            y = train_y[batch_index * batch_size : (batch_index + 1) * batch_size]
+            loss = model(x, y)
+            loss.backward()
+            optim.step()
+            optim.zero_grad()
+            watch_loss.append(loss.item())
+
+        print("=========\n第%d轮平均loss:%f" % (epoch + 1, np.mean(watch_loss)))
+        acc = evaluate(model, input_size, class_num)
+        log.append([acc, float(np.mean(watch_loss))])
+
+    # 保存模型
+    torch.save(model.state_dict(), "model.bin")
+
+    # 画图
+    plt.plot([l[0] for l in log], label="acc")
+    plt.plot([l[1] for l in log], label="loss")
+    plt.legend()
+    plt.show()
+
+# 使用模型预测
+def predict(model_path, input_vec, input_size, class_num):
+    model = TorchModel(input_size, class_num)
+    model.load_state_dict(torch.load(model_path))
+    print(model.state_dict())
+
+    model.eval()
+    with torch.no_grad():
+        result = model.forward(torch.FloatTensor(input_vec))
+    for vec, res in zip(input_vec, result):
+        print(f"输入：{vec}，预测类别：{torch.argmax(res).item()}")
+
+if __name__ == "__main__":
+    main()
