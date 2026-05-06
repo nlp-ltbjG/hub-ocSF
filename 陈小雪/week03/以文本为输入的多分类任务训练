@@ -75,7 +75,6 @@ class YourPositionDataset(Dataset):
 # ==================== 2. 定义模型 ====================
 class TextRNN(nn.Module):
     """RNN模型"""
-
     def __init__(self, vocab_size, embed_dim, hidden_dim, num_classes, num_layers=2, rnn_type='rnn'):
         super(TextRNN, self).__init__()
 
@@ -99,7 +98,6 @@ class TextRNN(nn.Module):
 
 class TextLSTM(nn.Module):
     """LSTM模型"""
-
     def __init__(self, vocab_size, embed_dim, hidden_dim, num_classes, num_layers=2):
         super(TextLSTM, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
@@ -109,10 +107,10 @@ class TextLSTM(nn.Module):
         self.dropout = nn.Dropout(0.3)
 
     def forward(self, x):
-        embedded = self.embedding(x)
+        embedded = self.embedding(x)  # [batch, seq_len, embed_dim]
         output, (hidden, cell) = self.lstm(embedded)
-        last_hidden = hidden[-1, :, :]  # [batch, hidden_dim]
-        logits = self.fc(self.dropout(last_hidden))
+        last_output = output[:, -1, :]
+        logits = self.fc(self.dropout(last_output))
         return logits
 
 
