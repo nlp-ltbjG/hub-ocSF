@@ -1,0 +1,115 @@
+import torch
+import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==============================
+# 任务：5个字句子，判断“你”在第几位
+# 你在第1位 → 类别1
+# 你在第2位 → 类别2
+# ...
+# 你在第5位 → 类别5
+# ==============================
+
+# 构建词汇表（简单字表）
+vocab = ["我", "你", "他", "是", "好", "坏", "很", "在", "家", "们"]
+word2idx = {w: i for i, w in enumerate(vocab)}
+vocab_size = len(vocab)
+
+# 生成样本：5个字，其中一个是“你”，其余随机
+def build_sample():
+    sentence = ["我"] * 5
+    pos = np.random.randint(0, 5)  # 0~4 位置
+    sentence[pos] = "你"
+    # 其余随机替换
+    for i in range(5):
+        if i != pos:
+            sentence[i] = np.random.choice(vocab)
+    # 转索引
+    idx_sentence = [word2idx[w] for w in sentence]
+    label = pos + 1  # 位置+1 = 类别1~5
+    return idx_sentence, label
+
+# 生成一批数据
+def build_dataset(num):
+    X, Y = [], []
+    for _ in range(num):
+        x, y = build_sample()
+        X.append(x)
+        Y.append(y)
+    return torch.LongTensor(X), torch.LongTensor(Y)
+
+# ==============================
+# LSTM 模型（多分类）
+# ==============================
+class LSTMModel(nn.Module):
+    def __init__(self, vocab_size, hidden_size, num_classes):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, 10)  # 词嵌入
+        self.lstm = nn.LSTM(10, hidden_size, batch_first=True)  # LSTM
+        self.fc = nn.Linear(hidden_size, num_classes)   # 分类层
+        self.loss = nn.CrossEntropyLoss()
+
+    def forward(self, x, y=None):
+        x = self.embedding(x)  # (batch,5) → (batch,5,10)
+        out, (h_n, c_n) = self.lstm(x)
+        feat = out[:, -1, :]  # 取最后一步输出
+        logits = self.fc(feat)
+        
+        if y is not None:
+            y = y - 1  # 标签1~5 → 0~4
+            return self.loss(logits, y)
+        else:
+            return logits
+
+# ==============================
+# 评估准确率
+# ==============================
+def test(model):
+    model.eval()
+    x, y = build_dataset(200)
+    with torch.no_grad():
+        pred = model(x)
+        pred_cls = torch.argmax(pred, dim=1)
+        y = y - 1
+        acc = (pred_cls == y).sum().item() / y.size(0)
+    print(f"准确率: {acc:.4f}")
+    return acc
+
+# ==============================
+# 训练
+# ==============================
+def train():
+    epoch_num = 20
+    batch_size = 32
+    train_num = 5000
+    lr = 0.01
+
+    model = LSTMModel(vocab_size, hidden_size=16, num_classes=5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    log = []
+    train_x, train_y = build_dataset(train_num)
+
+    for epoch in range(epoch_num):
+        model.train()
+        loss_list = []
+        for i in range(0, train_num, batch_size):
+            bx = train_x[i:i+batch_size]
+            by = train_y[i:i+batch_size]
+
+            loss = model(bx, by)
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+            loss_list.append(loss.item())
+
+        avg_loss = np.mean(loss_list)
+        print(f"epoch {epoch+1}, loss: {avg_loss:.4f}")
+        acc = test(model)
+        log.append([acc, avg_loss])
+
+    
+if __name__ == "__main__":
+    train()
+
