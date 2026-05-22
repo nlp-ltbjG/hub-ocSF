@@ -1,0 +1,146 @@
+'''
+使用pytorch实现transformer层的逻辑
+transformer架构：
+输入向量
+1. Multi-Head Self-Attention 实现多头自注意力机制（包含Q,K,V三个线性投影，计算注意力并进行softmax归一化，加权汇聚输出）
+2. Add & LayerNorm  （残差1）.逐行softmax
+3. Feed-Forward Network 两层线性 + GELU 激活，深度堆叠
+4. Add & LayerNorm  （残差2）
+输出向量
+'''
+
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+
+
+# 创建transformer层
+class TransformerLayer(nn.Module):
+    def __init__(self, d_model, n_head, d_k, d_v, d_ff, dropout=0.1):
+        super(TransformerLayer, self).__init__()
+        self.multi_head_attention = MultiHeadAttention(d_model, n_head, d_k, d_v)
+        self.feed_forward = FeedForward(d_model, d_ff)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+        self.d_model = d_model
+        self.d_k = d_k
+        self.d_v = d_v
+        self.d_ff = d_ff
+        self.n_head = n_head
+
+    def forward(self, x):
+        print(f"\n=== TransformerLayer 前向传播 ===")
+        print(f"输入维度: {x.shape}")
+        # 1. Multi-Head Self-Attention
+        residual = x
+        attention_output = self.multi_head_attention(x)
+        attention_output = self.dropout1(attention_output)
+        # 2. Add & LayerNorm (残差连接)
+        x = self.norm1(residual + attention_output)
+        print(f"\n===Add & LayerNorm 1 输出维度: {x.shape}===")
+        # 3. Feed-Forward Network
+        residual = x
+        ff_output = self.feed_forward(x)
+        ff_output = self.dropout2(ff_output)
+        # 4. Add & LayerNorm (残差连接)
+        x = self.norm2(residual + ff_output)
+        print(f"Feed-Forward 输出维度: {ff_output.shape}")
+        print(f"Add & LayerNorm 2 输出维度: {x.shape}")
+        print(f"=== TransformerLayer 输出维度: {x.shape} ===\n")
+        return x
+
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model, n_head, d_k, d_v):
+        super(MultiHeadAttention, self).__init__()
+        self.n_head = n_head
+        self.d_k = d_k
+        self.d_v = d_v
+
+        # 线性投影层：Q, K, V
+        self.w_q = nn.Linear(d_model, n_head * d_k, bias=False)
+        self.w_k = nn.Linear(d_model, n_head * d_k, bias=False)
+        self.w_v = nn.Linear(d_model, n_head * d_v, bias=False)
+
+        # 输出线性层
+        self.fc = nn.Linear(n_head * d_v, d_model, bias=False)
+
+    def forward(self, x):
+        batch_size, seq_len, d_model = x.size()
+
+        # 线性投影并分割成多个头
+        q = self.w_q(x).view(batch_size, seq_len, self.n_head, self.d_k).transpose(1, 2)
+        k = self.w_k(x).view(batch_size, seq_len, self.n_head, self.d_k).transpose(1, 2)
+        v = self.w_v(x).view(batch_size, seq_len, self.n_head, self.d_v).transpose(1, 2)
+
+        # 输出维度
+        print(f"\n=== Multi-Head Self-Attention 层 ===")
+        print(f"q维度：{q.shape}")
+        print(f"k维度：{k.shape}")
+        print(f"v维度：{v.shape}")
+        # 计算注意力分数
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_k)
+        attention_weights = F.softmax(scores, dim=-1)
+        # 输出注意力权重
+        print(f"注意力权重维度:{attention_weights.shape}")
+        # 加权求和
+        context = torch.matmul(attention_weights, v)
+        print(f"Context维度(多头分离): {context.shape}")
+        # 合并多头结果
+        context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, -1)
+        print(f"Context维度(合并后): {context.shape}")
+        # 最终线性变换
+        output = self.fc(context)
+        # 打印输出
+
+        print(f"\n=== Multi-Head Self-Attention 输出维度: {output.shape}")
+        return output
+
+
+class FeedForward(nn.Module):
+    def __init__(self, d_model, d_ff):
+        super(FeedForward, self).__init__()
+        self.fc1 = nn.Linear(d_model, d_ff)
+        self.fc2 = nn.Linear(d_ff, d_model)
+        self.activation = nn.GELU()
+
+    def forward(self, x):
+        print(f"\n=== Feed-Forward Network 层===")
+        # 两层线性变换 + GELU激活
+        x = self.fc1(x)
+        print(f"FeedForward FC1 输出维度: {x.shape}")
+        x = self.activation(x)
+        print(f"FeedForward GELU激活 输出维度: {x.shape}")
+        x = self.fc2(x)
+        print(f"FeedForward 输出维度: {x.shape}")
+        return x
+
+
+# 测试代码
+if __name__ == "__main__":
+    # 定义模型参数
+    d_model = 768 # 模型维度
+    n_head = 12  # 注意力头数
+    d_k = 64  # Q/K的维度
+    d_v = 64  # V的维度
+    d_ff = 3072  # 前馈网络中间层维度
+    dropout = 0.1  # Dropout概率
+
+    # 创建Transformer层
+    transformer_layer = TransformerLayer(d_model, n_head, d_k, d_v, d_ff, dropout)
+
+    # 创建示例输入 (batch_size, seq_len, d_model)
+    batch_size = 2
+    seq_len = 10
+    input_data = torch.randn(batch_size, seq_len, d_model)
+
+    # 前向传播
+    output = transformer_layer(input_data)
+
+    print(f"输入形状: {input_data.shape}")
+    print(f"输出形状: {output.shape}")
+    print("Transformer层实现成功！")
