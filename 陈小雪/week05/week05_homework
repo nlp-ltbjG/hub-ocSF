@@ -1,0 +1,409 @@
+import math
+import argparse
+import glob
+import random
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+
+
+# ─────────────────────────── 数据 ───────────────────────────
+
+def load_corpus(pattern="*.txt"):
+    """加载所有匹配的txt文件"""
+    texts = []
+    for path in glob.glob(pattern):
+        with open(path, encoding="utf-8", errors="ignore") as f:
+            texts.append(f.read())
+    return "".join(texts)
+
+
+def build_vocab(text):
+    """构建字符级词表"""
+    chars = sorted(set(text))
+    char2idx = {c: i for i, c in enumerate(chars)}
+    idx2char = {i: c for c, i in char2idx.items()}
+    return char2idx, idx2char
+
+
+class CharDataset(Dataset):
+    """字符级数据集，每个样本为一个序列块"""
+
+    def __init__(self, text, char2idx, seq_len):
+        self.seq_len = seq_len
+        ids = [char2idx[c] for c in text if c in char2idx]
+        self.data = torch.tensor(ids, dtype=torch.long)
+
+    def __len__(self):
+        return max(0, len(self.data) - self.seq_len)
+
+    def __getitem__(self, idx):
+        x = self.data[idx: idx + self.seq_len]
+        y = self.data[idx + 1: idx + self.seq_len + 1]
+        return x, y
+
+
+# ─────────────────────────── Transformer模型 ───────────────────────────
+
+class CausalSelfAttention(nn.Module):
+    """带因果mask的自注意力层"""
+
+    def __init__(self, embed_dim, num_heads, dropout, max_seq_len=512):
+        super().__init__()
+        assert embed_dim % num_heads == 0, "embed_dim必须能被num_heads整除"
+
+        self.num_heads = num_heads
+        self.head_dim = embed_dim // num_heads
+        self.embed_dim = embed_dim
+
+        # Q、K、V投影层
+        self.qkv = nn.Linear(embed_dim, 3 * embed_dim)
+        self.proj = nn.Linear(embed_dim, embed_dim)
+        self.dropout = nn.Dropout(dropout)
+
+        # 注册下三角mask（因果mask），确保位置i只能看到j<=i
+        # shape: (1, 1, max_seq_len, max_seq_len) 便于广播
+        mask = torch.tril(torch.ones(max_seq_len, max_seq_len)).view(1, 1, max_seq_len, max_seq_len)
+        mask = mask.masked_fill(mask == 0, float('-inf'))
+        self.register_buffer("mask", mask)
+
+    def forward(self, x):
+        B, T, C = x.shape  # batch_size, seq_len, embed_dim
+
+        # 计算Q、K、V
+        qkv = self.qkv(x)  # (B, T, 3*C)
+        qkv = qkv.reshape(B, T, 3, self.num_heads, self.head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, B, num_heads, T, head_dim)
+        q, k, v = qkv[0], qkv[1], qkv[2]
+
+        # 计算注意力分数
+        attn_scores = (q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5)  # (B, num_heads, T, T)
+
+        # 应用因果mask
+        attn_scores = attn_scores + self.mask[:, :, :T, :T]
+
+        # softmax + dropout
+        attn_weights = F.softmax(attn_scores, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+
+        # 应用注意力
+        out = attn_weights @ v  # (B, num_heads, T, head_dim)
+        out = out.transpose(1, 2).contiguous().reshape(B, T, C)  # (B, T, C)
+        out = self.proj(out)
+        out = self.dropout(out)
+
+        return out
+
+
+class TransformerBlock(nn.Module):
+    """Transformer解码器块：多头注意力 + 前馈网络，带残差连接和层归一化"""
+
+    def __init__(self, embed_dim, num_heads, ff_dim, dropout):
+        super().__init__()
+        self.ln1 = nn.LayerNorm(embed_dim)
+        self.attn = CausalSelfAttention(embed_dim, num_heads, dropout)
+        self.ln2 = nn.LayerNorm(embed_dim)
+        self.ff = nn.Sequential(
+            nn.Linear(embed_dim, ff_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(ff_dim, embed_dim),
+            nn.Dropout(dropout)
+        )
+
+    def forward(self, x):
+        # 残差连接：Attn(LN(x)) + x
+        x = x + self.attn(self.ln1(x))
+        # 残差连接：FF(LN(x)) + x
+        x = x + self.ff(self.ln2(x))
+        return x
+
+
+class TransformerLM(nn.Module):
+    """Transformer语言模型"""
+
+    def __init__(self, vocab_size, embed_dim, num_layers, num_heads, ff_dim, dropout, max_seq_len):
+        super().__init__()
+        self.embed_dim = embed_dim
+        self.token_embedding = nn.Embedding(vocab_size, embed_dim)
+        # 位置编码（可学习）
+        self.pos_embedding = nn.Embedding(max_seq_len, embed_dim)
+        self.dropout = nn.Dropout(dropout)
+
+        # Transformer块堆叠
+        self.blocks = nn.ModuleList([
+            TransformerBlock(embed_dim, num_heads, ff_dim, dropout)
+            for _ in range(num_layers)
+        ])
+
+        self.ln_f = nn.LayerNorm(embed_dim)
+        self.lm_head = nn.Linear(embed_dim, vocab_size, bias=False)
+
+        # 权重初始化
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
+    def forward(self, x):
+        B, T = x.shape
+        # 获取token嵌入
+        tok_emb = self.token_embedding(x)  # (B, T, embed_dim)
+
+        # 获取位置嵌入
+        pos_ids = torch.arange(0, T, device=x.device).unsqueeze(0)  # (1, T)
+        pos_emb = self.pos_embedding(pos_ids)  # (1, T, embed_dim)
+
+        # 组合并dropout
+        x = self.dropout(tok_emb + pos_emb)
+
+        # 通过所有Transformer块
+        for block in self.blocks:
+            x = block(x)
+
+        # 最终层归一化
+        x = self.ln_f(x)
+
+        # 输出logits
+        logits = self.lm_head(x)  # (B, T, vocab_size)
+
+        return logits
+
+
+# ─────────────────────────── 采样策略 ───────────────────────────
+
+def sample_top_k(logits, k):
+    """Top-k采样：只保留概率最高的k个token"""
+    if k <= 0:
+        return logits
+    v, _ = torch.topk(logits, k)
+    logits[logits < v[:, [-1]]] = float('-inf')
+    return logits
+
+
+def sample_top_p(logits, p):
+    """Top-p（nucleus）采样：累积概率达到p时截断"""
+    if p <= 0 or p >= 1:
+        return logits
+    # 按概率降序排序
+    sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+    cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+
+    # 移除累积概率超过p的token
+    sorted_indices_to_remove = cumulative_probs > p
+    sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+    sorted_indices_to_remove[..., 0] = 0
+
+    indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
+    logits = logits.masked_fill(indices_to_remove, float('-inf'))
+    return logits
+
+
+def generate_text(model, prompt, char2idx, idx2char, max_new_tokens, temperature=1.0,
+                  top_k=None, top_p=None, device='cpu'):
+    """生成文本续写"""
+    model.eval()
+
+    # 将prompt转换为token ids
+    prompt_ids = [char2idx.get(c, 0) for c in prompt if c in char2idx]
+    if not prompt_ids:
+        # 如果prompt为空或全不在词表中，使用随机token
+        prompt_ids = [random.randint(0, len(char2idx) - 1)]
+
+    input_ids = torch.tensor([prompt_ids], device=device, dtype=torch.long)
+    generated = list(prompt_ids)
+
+    with torch.no_grad():
+        for _ in range(max_new_tokens):
+            # 只使用最后seq_len长度的上下文（避免序列过长）
+            if input_ids.size(1) > 512:
+                input_ids = input_ids[:, -512:]
+
+            # 前向传播
+            logits = model(input_ids)  # (1, T, vocab_size)
+            # 取最后一个位置的logits
+            next_token_logits = logits[0, -1, :] / temperature
+
+            # 应用采样策略
+            if top_k is not None and top_k > 0:
+                next_token_logits = sample_top_k(next_token_logits, top_k)
+            if top_p is not None and 0 < top_p < 1:
+                next_token_logits = sample_top_p(next_token_logits, top_p)
+
+            # 转为概率并采样
+            probs = F.softmax(next_token_logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1).item()
+
+            generated.append(next_token)
+            input_ids = torch.cat([input_ids, torch.tensor([[next_token]], device=device)], dim=1)
+
+    # 转换为文本
+    generated_text = ''.join([idx2char.get(idx, '?') for idx in generated])
+    return generated_text
+
+
+# ─────────────────────────── 训练 / 评估 ───────────────────────────
+
+def run_epoch(model, loader, criterion, optimizer, device, train=True):
+    """运行一个epoch的训练或验证"""
+    model.train(train)
+    total_loss = 0.0
+    total_tokens = 0
+
+    for x, y in loader:
+        x, y = x.to(device), y.to(device)
+        logits = model(x)
+        loss = criterion(logits.reshape(-1, logits.size(-1)), y.reshape(-1))
+
+        if train:
+            optimizer.zero_grad()
+            loss.backward()
+            # 梯度裁剪，防止梯度爆炸
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+
+        total_loss += loss.item() * y.numel()
+        total_tokens += y.numel()
+
+    avg_loss = total_loss / total_tokens
+    ppl = math.exp(avg_loss) if avg_loss < 100 else float('inf')
+    return avg_loss, ppl
+
+
+# ─────────────────────────── 主函数 ───────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser(description='Transformer字符级语言模型')
+    parser.add_argument("--epochs", type=int, default=20, help="训练轮数")
+    parser.add_argument("--seq_len", type=int, default=128, help="序列长度")
+    parser.add_argument("--batch_size", type=int, default=64, help="批次大小")
+    parser.add_argument("--embed_dim", type=int, default=512, help="嵌入维度")
+    parser.add_argument("--num_layers", type=int, default=6, help="Transformer层数")
+    parser.add_argument("--num_heads", type=int, default=8, help="注意力头数")
+    parser.add_argument("--ff_dim", type=int, default=2048, help="前馈网络维度")
+    parser.add_argument("--dropout", type=float, default=0.1, help="Dropout率")
+    parser.add_argument("--lr", type=float, default=3e-4, help="学习率")
+    parser.add_argument("--val_ratio", type=float, default=0.05, help="验证集比例")
+    parser.add_argument("--corpus", default="*.txt", help="语料文件模式")
+    parser.add_argument("--save", default="transformer_best.pt", help="保存模型路径")
+    parser.add_argument("--generate", action="store_true", help="训练后生成文本")
+    parser.add_argument("--prompt", default="", help="生成文本的提示")
+    parser.add_argument("--max_new_tokens", type=int, default=200, help="生成最大新token数")
+    parser.add_argument("--temperature", type=float, default=0.8, help="采样温度")
+    parser.add_argument("--top_k", type=int, default=50, help="Top-k采样参数")
+    parser.add_argument("--top_p", type=float, default=0.9, help="Top-p采样参数")
+    args = parser.parse_args()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"设备: {device}")
+    print(f"模型: Transformer (层数={args.num_layers}, 嵌入维度={args.embed_dim}, 注意力头={args.num_heads})")
+
+    # 数据准备
+    text = load_corpus(args.corpus)
+    if not text:
+        raise FileNotFoundError("未找到任何 .txt 文件，请确认路径正确。")
+    print(f"语料字符数: {len(text):,}")
+
+    char2idx, idx2char = build_vocab(text)
+    vocab_size = len(char2idx)
+    print(f"词表大小: {vocab_size}")
+
+    # 划分训练验证集
+    lines = text.splitlines()
+    random.shuffle(lines)
+    split = int(len(lines) * (1 - args.val_ratio))
+    train_text = "\n".join(lines[:split])
+    val_text = "\n".join(lines[split:])
+
+    train_ds = CharDataset(train_text, char2idx, args.seq_len)
+    val_ds = CharDataset(val_text, char2idx, args.seq_len)
+
+    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, drop_last=True)
+    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, drop_last=True)
+
+    # 模型初始化
+    model = TransformerLM(
+        vocab_size=vocab_size,
+        embed_dim=args.embed_dim,
+        num_layers=args.num_layers,
+        num_heads=args.num_heads,
+        ff_dim=args.ff_dim,
+        dropout=args.dropout,
+        max_seq_len=args.seq_len
+    ).to(device)
+
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"模型参数量: {total_params:,}")
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
+
+    best_val_ppl = float("inf")
+
+    print(f"\n{'Epoch':>6}  {'Train Loss':>10}  {'Train PPL':>10}  {'Val Loss':>10}  {'Val PPL':>10}")
+    print("-" * 56)
+
+    for epoch in range(1, args.epochs + 1):
+        tr_loss, tr_ppl = run_epoch(model, train_loader, criterion, optimizer, device, train=True)
+        with torch.no_grad():
+            va_loss, va_ppl = run_epoch(model, val_loader, criterion, optimizer, device, train=False)
+
+        marker = "  *" if va_ppl < best_val_ppl else ""
+        if va_ppl < best_val_ppl:
+            best_val_ppl = va_ppl
+            torch.save({
+                "model_state": model.state_dict(),
+                "char2idx": char2idx,
+                "idx2char": idx2char,
+                "args": vars(args),
+            }, args.save)
+
+        print(f"{epoch:>6}  {tr_loss:>10.4f}  {tr_ppl:>10.2f}  {va_loss:>10.4f}  {va_ppl:>10.2f}{marker}")
+
+    print(f"\n训练完成。最佳验证 PPL: {best_val_ppl:.2f}  已保存至 {args.save}")
+
+    # 生成示例文本
+    if args.generate:
+        print("\n" + "=" * 60)
+        print("文本生成示例")
+        print("=" * 60)
+
+        # 加载最佳模型
+        checkpoint = torch.load(args.save, map_location=device)
+        model.load_state_dict(checkpoint["model_state"])
+        model.to(device)
+
+        # 如果没有提供prompt，尝试从验证集中选择一个
+        if not args.prompt:
+            # 随机选取一个验证集的片段作为prompt
+            sample_text = val_text[:min(500, len(val_text))]
+            start_idx = random.randint(0, max(0, len(sample_text) - 50))
+            args.prompt = sample_text[start_idx:start_idx + 30]
+
+        print(f"提示词: \"{args.prompt}\"")
+        print(f"采样参数: temperature={args.temperature}, top_k={args.top_k}, top_p={args.top_p}")
+
+        generated = generate_text(
+            model=model,
+            prompt=args.prompt,
+            char2idx=char2idx,
+            idx2char=idx2char,
+            max_new_tokens=args.max_new_tokens,
+            temperature=args.temperature,
+            top_k=args.top_k,
+            top_p=args.top_p,
+            device=device
+        )
+
+        print(f"\n生成文本:\n{generated}")
+        print("\n" + "=" * 60)
+
+
+if __name__ == "__main__":
+    main()
