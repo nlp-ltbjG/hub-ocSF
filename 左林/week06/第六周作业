@@ -1,0 +1,105 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# 统一设置超参数
+vocab_size = 200      # 词汇表大小
+embed_dim = 64        # 词向量维度
+seq_len = 15          # 文本序列长度
+num_classes = 2       # 二分类任务
+batch_size = 16       # 批次大小
+lr = 1e-3             # 学习率
+epochs = 20           # 训练轮数
+
+# 1. 全连接网络文本分类模型
+class FcTextClassifier(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # 词嵌入层
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        # 全连接层
+        self.fc1 = nn.Linear(seq_len * embed_dim, 128)
+        self.fc2 = nn.Linear(128, num_classes)
+
+    def forward(self, x):
+        # 词向量映射
+        x = self.embedding(x)
+        # 展平特征，适配全连接层输入
+        x = x.flatten(1)
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+# 2. Transformer文本分类模型
+class TransformerTextClassifier(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        # 单层Transformer编码器
+        encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=2, batch_first=True, dropout=0.1)
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=1)
+        # 分类全连接层
+        self.fc = nn.Linear(embed_dim, num_classes)
+
+    def forward(self, x):
+        x = self.embedding(x)
+        # Transformer特征提取
+        x = self.transformer_encoder(x)
+        # 全局平均池化
+        x = torch.mean(x, dim=1)
+        x = self.fc(x)
+        return x
+
+# 通用模型训练函数
+def train_model(model, name, loader):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    print(f"\n===== 开始训练 {name} =====")
+    for epoch in range(epochs):
+        total_loss = 0
+        correct = 0
+        total = 0
+        model.train()
+        # 迭代训练数据
+        for data, label in loader:
+            out = model(data)
+            loss = criterion(out, label)
+            # 反向传播更新参数
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+            pred = torch.argmax(out, dim=1)
+            correct += (pred == label).sum().item()
+            total += label.size(0)
+        
+        avg_loss = total_loss / len(loader)
+        acc = correct / total
+        # 每5轮打印一次训练结果
+        if epoch % 5 == 0:
+            print(f"Epoch {epoch:2d} | Loss: {avg_loss:.4f} | Acc: {acc:.4f}")
+    print(f"{name} 训练完成")
+
+if __name__ == "__main__":
+    # 设置随机种子，保证结果可复现
+    torch.manual_seed(10)
+    # 生成模拟文本数据和标签
+    train_data = torch.randint(0, vocab_size, (300, seq_len))
+    train_label = torch.randint(0, num_classes, (300,))
+    dataset = TensorDataset(train_data, train_label)
+    train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    # 训练全连接网络
+    model1 = FcTextClassifier()
+    train_model(model1, "全连接网络", train_loader)
+
+    # 训练Transformer网络
+    model2 = TransformerTextClassifier()
+    train_model(model2, "Transformer文本分类", train_loader)
+
+    # 输出对比总结
+    print("\n===== 效果对比总结 =====")
+    print("1. 全连接网络：结构简单、参数少、训练速度快，仅能学习基础特征，无法捕捉文本序列关联")
+    print("2. Transformer：结构更复杂，具备自注意力机制，能捕捉文本上下文关系，但训练成本更高、收敛较慢")
