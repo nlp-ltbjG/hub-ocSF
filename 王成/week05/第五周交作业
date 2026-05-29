@@ -1,0 +1,508 @@
+"""
+=========================================================
+第五周作业：基于 Transformer 的单向语言模型
+=========================================================
+学习目标：
+    1. 理解 Transformer Decoder 的结构
+    2. 学会用 PyTorch 搭建一个迷你版 GPT
+    3. 训练一个字符级语言模型
+    4. 用训练好的模型生成文本
+
+运行方式：
+    第一次运行会自动下载/使用 week4 的语料进行训练。
+    训练完成后会自动演示文本生成效果。
+"""
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+import os
+import sys
+import math
+import random
+import glob
+
+# PyTorch 是深度学习的核心库
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+
+# 设置随机种子，让每次运行结果可复现
+torch.manual_seed(42)
+random.seed(42)
+
+# 解决 Windows 下可能出现的 DLL 冲突问题
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+
+
+# ==================== 第一部分：数据准备 ====================
+
+def load_corpus():
+    """
+    加载训练用的文本语料。
+    我们会尝试加载 week4 课程提供的语料文件。
+    """
+    # 尝试找到 week4 的语料文件（同学们可以直接用这个）
+    fallback = (
+        "D:/Work/Study/week4语言模型/week4 语言模型/week4 语言模型/"
+        "循环神经网络语言模型/corpus.txt"
+    )
+
+    # 如果上面的文件存在，就用它
+    if os.path.exists(fallback):
+        print(f"找到语料文件: {fallback}")
+        with open(fallback, encoding="utf-8", errors="ignore") as f:
+            return f.read()
+
+    # 如果没找到，尝试加载当前目录下的所有 txt 文件
+    txt_files = glob.glob("*.txt")
+    if txt_files:
+        print(f"找到语料文件: {txt_files}")
+        texts = []
+        for path in txt_files:
+            with open(path, encoding="utf-8", errors="ignore") as f:
+                texts.append(f.read())
+        return "\n".join(texts)
+
+    # 如果什么都没找到，报错并提示
+    raise FileNotFoundError(
+        "找不到语料文件！\n"
+        "请把 corpus.txt 放到当前目录，或者修改代码里的路径。"
+    )
+
+
+def build_vocab(text):
+    """
+    构建字符级词表。
+
+    什么是字符级词表？
+    -----------------
+    我们把文本中出现的每一个不同的字符都编一个号。
+    比如文本里有 "你好世界"，词表就是：
+        '你' -> 0
+        '好' -> 1
+        '世' -> 2
+        '界' -> 3
+
+    这样模型看到数字 0 就知道要输出 '你'。
+    """
+    # 获取所有不重复的字符，并排序
+    chars = sorted(set(text))
+
+    # 建立字符到数字的映射
+    char2idx = {c: i for i, c in enumerate(chars)}
+
+    # 建立数字到字符的映射（生成文本时要用）
+    idx2char = {i: c for c, i in char2idx.items()}
+
+    return char2idx, idx2char
+
+
+class CharDataset(Dataset):
+    """
+    字符级数据集。
+
+    语言模型的训练方式：
+    -------------------
+    假设 seq_len = 5，文本是 "今天天气真好"
+    我们会把它切成很多个小片段：
+
+        输入 x:     [今, 天, 天, 气, 真]      (长度5)
+        目标 y:     [天, 天, 气, 真, 好]      (整体右移一位)
+
+    模型要学会：看到 "今天天气" 就预测下一个字是 "真"，
+               看到 "今天天气真" 就预测下一个字是 "好"。
+    """
+
+    def __init__(self, text, char2idx, seq_len):
+        self.seq_len = seq_len
+        # 把整段文字转换成数字序列
+        self.data = [char2idx[c] for c in text if c in char2idx]
+        self.data = torch.tensor(self.data, dtype=torch.long)
+
+    def __len__(self):
+        # 数据集里有多少个样本
+        # 总长度减去 seq_len，因为最后 seq_len 个字符后面没有字可以预测了
+        return max(0, len(self.data) - self.seq_len)
+
+    def __getitem__(self, idx):
+        # 取一段长度为 seq_len 的输入
+        x = self.data[idx : idx + self.seq_len]
+        # 目标就是这段输入整体右移一位
+        y = self.data[idx + 1 : idx + self.seq_len + 1]
+        return x, y
+
+
+# ==================== 第二部分：模型定义 ====================
+
+class MiniGPT(nn.Module):
+    """
+    迷你版 GPT 语言模型（单向 Transformer）。
+
+    核心思想：
+    ---------
+    1. 把字符变成向量（Embedding）
+    2. 加上位置信息（Positional Encoding）
+    3. 用多层 Transformer Decoder 处理
+    4. 输出预测下一个字符的概率
+
+    "单向"是什么意思？
+    -----------------
+    模型在预测第 i 个字符时，只能看第 1 到第 i 个字符，
+    不能偷看后面的字符。这叫"因果掩码"（Causal Mask）。
+    """
+
+    def __init__(self, vocab_size, d_model=128, num_heads=4, num_layers=2, seq_len=128):
+        """
+        参数说明（都是初学者友好版的小参数）：
+            vocab_size: 词表大小（有多少个不同的字符）
+            d_model:    模型维度（每个字符用多长的向量表示）
+            num_heads:  注意力头的数量
+            num_layers: Transformer 层的数量
+            seq_len:    每次看多少个字符
+        """
+        super().__init__()
+        self.seq_len = seq_len
+        self.d_model = d_model
+
+        # 1. 字符嵌入层：把数字变成向量
+        #    比如字符 '你' 的编号是 10，就查第 10 行，得到一个 128 维的向量
+        self.token_embedding = nn.Embedding(vocab_size, d_model)
+
+        # 2. 位置嵌入层：让模型知道每个字符的位置
+        #    Transformer 不像 RNN 那样按顺序处理，所以需要告诉它"这是第几个字"
+        self.position_embedding = nn.Embedding(seq_len, d_model)
+
+        # 3. Transformer Decoder 层
+        #    这是模型的核心，负责"理解"上下文并预测下一个字
+        #    batch_first=True 表示输入数据的形状是 (batch_size, seq_len, d_model)
+        decoder_layer = nn.TransformerDecoderLayer(
+            d_model=d_model,
+            nhead=num_heads,
+            dim_feedforward=d_model * 4,  # 前馈网络的中间层大小，通常是 d_model 的 4 倍
+            batch_first=True
+        )
+        self.transformer = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+
+        # 4. 输出层：把模型的内部表示转换成"预测下一个字符"的分数
+        self.output_layer = nn.Linear(d_model, vocab_size)
+
+    def forward(self, x):
+        """
+        前向传播：输入一批字符编号，输出预测结果。
+
+        参数:
+            x: 形状为 (batch_size, seq_len) 的张量
+               比如 x = [[2, 5, 8, ...], [1, 3, 7, ...]]
+
+        返回:
+            logits: 形状为 (batch_size, seq_len, vocab_size)
+                    表示每个位置预测下一个字符的分数
+        """
+        batch_size, seq_len = x.shape
+
+        # ---- 步骤 1：字符嵌入 ----
+        # token_emb 的形状: (batch_size, seq_len, d_model)
+        token_emb = self.token_embedding(x)
+
+        # ---- 步骤 2：位置嵌入 ----
+        # 生成位置编号 [0, 1, 2, ..., seq_len-1]
+        positions = torch.arange(seq_len, device=x.device).unsqueeze(0)
+        pos_emb = self.position_embedding(positions)
+
+        # 把字符信息和位置信息相加
+        x = token_emb + pos_emb
+
+        # ---- 步骤 3：生成因果掩码（Causal Mask）----
+        # 这是一个上三角矩阵，用来"遮住"未来的信息
+        # 比如 seq_len=5 时，mask 长这样：
+        #   [[0, -inf, -inf, -inf, -inf],
+        #    [0,    0, -inf, -inf, -inf],
+        #    [0,    0,    0, -inf, -inf],
+        #    [0,    0,    0,    0, -inf],
+        #    [0,    0,    0,    0,    0]]
+        # 0 表示可以看，-inf 表示不能看（softmax 后变成 0）
+        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
+        mask = mask.to(x.device)
+
+        # ---- 步骤 4：通过 Transformer ----
+        # TransformerDecoder 需要两个输入：
+        #   tgt: 目标序列（就是输入 x）
+        #   memory: 编码器的输出（我们这里没有编码器，所以也用 x）
+        out = self.transformer(x, x, tgt_mask=mask)
+
+        # ---- 步骤 5：输出预测分数 ----
+        logits = self.output_layer(out)
+        return logits
+
+    @torch.no_grad()
+    def generate(self, start_text, char2idx, idx2char, length=100, temperature=1.0):
+        """
+        用训练好的模型生成文本。
+
+        参数:
+            start_text:  提示文本，比如 "今天"
+            char2idx:    字符到数字的映射
+            idx2char:    数字到字符的映射
+            length:      要生成多少个字符
+            temperature: 控制随机性
+                         > 1.0 更随机、更有创意
+                         < 1.0 更保守、更确定
+                         = 1.0 正常
+
+        生成原理：
+        ---------
+        1. 把 start_text 转成数字
+        2. 输入模型，得到最后一个位置的预测分数
+        3. 用 softmax 变成概率，按概率采样一个字符
+        4. 把这个新字符加到序列末尾
+        5. 重复步骤 2-4，直到生成足够长度
+        """
+        self.eval()  # 切换到评估模式（关闭 dropout 等）
+
+        # 把提示文本转成数字
+        input_ids = [char2idx.get(c, 0) for c in start_text]
+        input_tensor = torch.tensor([input_ids], dtype=torch.long)
+
+        # 如果有 GPU 就用 GPU
+        device = next(self.parameters()).device
+        input_tensor = input_tensor.to(device)
+
+        # 开始生成
+        for _ in range(length):
+            # 如果序列太长，只保留最后 seq_len 个字符
+            if input_tensor.size(1) > self.seq_len:
+                input_tensor = input_tensor[:, -self.seq_len:]
+
+            # 预测
+            logits = self(input_tensor)
+
+            # 只关心最后一个位置的预测结果
+            next_token_logits = logits[:, -1, :] / temperature
+
+            # 把分数转换成概率
+            probs = F.softmax(next_token_logits, dim=-1)
+
+            # 按概率随机采样下一个字符
+            next_token = torch.multinomial(probs, num_samples=1)
+
+            # 把新字符加到序列末尾
+            input_tensor = torch.cat([input_tensor, next_token], dim=1)
+
+        # 把数字序列转回文本
+        generated_ids = input_tensor[0].tolist()
+        generated_text = "".join([idx2char[i] for i in generated_ids])
+        return generated_text
+
+
+# ==================== 第三部分：训练流程 ====================
+
+def train_epoch(model, data_loader, optimizer, criterion, device):
+    """
+    训练一个 epoch（把所有训练数据过一遍）。
+
+    返回:
+        avg_loss: 平均损失
+        ppl:      困惑度（Perplexity），越小越好
+    """
+    model.train()  # 切换到训练模式
+    total_loss = 0
+    total_tokens = 0
+
+    for batch_idx, (x, y) in enumerate(data_loader):
+        # 把数据放到 GPU/CPU 上
+        x, y = x.to(device), y.to(device)
+
+        # 前向传播：得到预测结果
+        logits = model(x)
+
+        # 计算损失：预测结果和真实结果之间的差距
+        # reshape 是因为 CrossEntropyLoss 需要 (batch*seq_len, vocab_size) 的形状
+        loss = criterion(logits.reshape(-1, logits.size(-1)), y.reshape(-1))
+
+        # 反向传播：计算梯度
+        optimizer.zero_grad()  # 清空之前的梯度
+        loss.backward()        # 反向传播
+
+        # 梯度裁剪：防止梯度爆炸（Transformer 训练中常见的问题）
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+        # 更新参数
+        optimizer.step()
+
+        # 记录损失
+        total_loss += loss.item() * y.numel()
+        total_tokens += y.numel()
+
+        # 每 100 个 batch 打印一次进度
+        if (batch_idx + 1) % 100 == 0:
+            print(f"  Batch {batch_idx + 1}/{len(data_loader)}, Loss: {loss.item():.4f}")
+
+    # 计算平均损失和困惑度
+    avg_loss = total_loss / total_tokens
+    ppl = math.exp(avg_loss)
+    return avg_loss, ppl
+
+
+def evaluate(model, data_loader, criterion, device):
+    """在验证集上评估模型，和 train_epoch 类似但不更新参数。"""
+    model.eval()
+    total_loss = 0
+    total_tokens = 0
+
+    with torch.no_grad():  # 不计算梯度，节省内存和计算
+        for x, y in data_loader:
+            x, y = x.to(device), y.to(device)
+            logits = model(x)
+            loss = criterion(logits.reshape(-1, logits.size(-1)), y.reshape(-1))
+            total_loss += loss.item() * y.numel()
+            total_tokens += y.numel()
+
+    avg_loss = total_loss / total_tokens
+    ppl = math.exp(avg_loss)
+    return avg_loss, ppl
+
+
+# ==================== 第四部分：主函数 ====================
+
+def main():
+    # ---------------- 超参数设置 ----------------
+    # 初学者建议不要改这些参数，先跑通再说
+    SEQ_LEN = 64        # 每次看 64 个字符
+    BATCH_SIZE = 32     # 一批处理 32 个样本
+    EPOCHS = 5          # 训练 5 轮（为了快速演示，实际可以调大）
+    D_MODEL = 128       # 模型维度（向量长度）
+    NUM_HEADS = 4       # 注意力头数
+    NUM_LAYERS = 2      # Transformer 层数
+    LR = 1e-3           # 学习率
+
+    print("=" * 50)
+    print("第五周作业：Transformer 单向语言模型")
+    print("=" * 50)
+
+    # ---------------- 加载数据 ----------------
+    print("\n【步骤 1】加载语料...")
+    text = load_corpus()
+    print(f"语料总字符数: {len(text):,}")
+
+    print("\n【步骤 2】构建词表...")
+    char2idx, idx2char = build_vocab(text)
+    vocab_size = len(char2idx)
+    print(f"词表大小（不同字符数）: {vocab_size}")
+    print(f"前 20 个字符: {list(char2idx.keys())[:20]}")
+
+    # ---------------- 划分训练集和验证集 ----------------
+    print("\n【步骤 3】划分训练集和验证集...")
+    # 按行打乱，然后 90% 训练，10% 验证
+    lines = text.splitlines()
+    random.shuffle(lines)
+    split_idx = int(len(lines) * 0.9)
+    train_text = "\n".join(lines[:split_idx])
+    val_text = "\n".join(lines[split_idx:])
+    print(f"训练集行数: {split_idx}, 验证集行数: {len(lines) - split_idx}")
+
+    # ---------------- 创建数据集 ----------------
+    print(f"\n【步骤 4】创建数据集（seq_len={SEQ_LEN}）...")
+    train_dataset = CharDataset(train_text, char2idx, SEQ_LEN)
+    val_dataset = CharDataset(val_text, char2idx, SEQ_LEN)
+
+    print(f"训练集样本数: {len(train_dataset)}")
+    print(f"验证集样本数: {len(val_dataset)}")
+
+    if len(train_dataset) == 0:
+        raise ValueError(
+            "训练集为空！可能原因：\n"
+            "1. 语料文件没有正确加载\n"
+            "2. seq_len 设置得太大，超过了文本长度\n"
+            "3. 训练集的行数太少"
+        )
+
+    # DataLoader 会自动把数据分成一个个 batch
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+    # ---------------- 创建模型 ----------------
+    print("\n【步骤 5】创建模型...")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"使用设备: {device}")
+
+    model = MiniGPT(
+        vocab_size=vocab_size,
+        d_model=D_MODEL,
+        num_heads=NUM_HEADS,
+        num_layers=NUM_LAYERS,
+        seq_len=SEQ_LEN,
+    ).to(device)
+
+    # 统计模型参数数量
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"模型总参数量: {total_params:,}")
+
+    # ---------------- 设置损失函数和优化器 ----------------
+    # CrossEntropyLoss 是分类任务的标准损失函数
+    criterion = nn.CrossEntropyLoss()
+
+    # Adam 是一种常用的优化算法
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+
+    # ---------------- 开始训练 ----------------
+    print("\n【步骤 6】开始训练！\n")
+    print(f"{'Epoch':>6} | {'Train Loss':>10} | {'Train PPL':>10} | {'Val Loss':>10} | {'Val PPL':>10}")
+    print("-" * 60)
+
+    best_val_ppl = float('inf')
+
+    for epoch in range(1, EPOCHS + 1):
+        # 训练
+        train_loss, train_ppl = train_epoch(model, train_loader, optimizer, criterion, device)
+
+        # 验证
+        val_loss, val_ppl = evaluate(model, val_loader, criterion, device)
+
+        # 如果验证困惑度更好，保存模型
+        marker = "  <-- 最佳" if val_ppl < best_val_ppl else ""
+        if val_ppl < best_val_ppl:
+            best_val_ppl = val_ppl
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'char2idx': char2idx,
+                'idx2char': idx2char,
+                'vocab_size': vocab_size,
+                'd_model': D_MODEL,
+                'num_heads': NUM_HEADS,
+                'num_layers': NUM_LAYERS,
+                'seq_len': SEQ_LEN,
+            }, 'best_model.pt')
+
+        print(f"{epoch:>6} | {train_loss:>10.4f} | {train_ppl:>10.2f} | {val_loss:>10.4f} | {val_ppl:>10.2f}{marker}")
+
+    print("\n训练完成！最佳模型已保存到 best_model.pt")
+
+    # ---------------- 文本生成演示 ----------------
+    print("\n" + "=" * 50)
+    print("【文本生成演示】")
+    print("=" * 50)
+
+    # 加载最佳模型
+    checkpoint = torch.load('best_model.pt', map_location=device)
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    # 用几个不同的提示词测试
+    test_prompts = ["黄金", "今天", "市场"]
+
+    for prompt in test_prompts:
+        print(f"\n提示词: '{prompt}'")
+        generated = model.generate(
+            start_text=prompt,
+            char2idx=char2idx,
+            idx2char=idx2char,
+            length=50,
+            temperature=0.8
+        )
+        print(f"生成结果: {generated}")
+        print("-" * 40)
+
+
+
+
+if __name__ == "__main__":
+    main()
