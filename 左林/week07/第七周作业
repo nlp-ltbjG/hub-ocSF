@@ -1,0 +1,82 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
+# 超参数定义
+vocab_size = 200
+num_labels = 5
+embed_dim = 64
+hidden_dim = 128
+seq_len = 20
+batch_size = 8
+lr = 1e-3
+epochs = 20
+
+# 自定义序列标注数据集（随机仿真数据）
+class NerDataset(Dataset):
+    def __init__(self):
+        # 随机生成200条、长度为20的序列数据与对应标签
+        self.data = torch.randint(0, vocab_size, (200, seq_len))
+        self.labels = torch.randint(0, num_labels, (200, seq_len))
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx], self.labels[idx]
+
+# 基础BiLSTM序列标注模型
+class BiLSTM_NER(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # 词嵌入层：将离散token转为稠密向量
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        # 双向LSTM：提取上下文时序特征
+        self.bilstm = nn.LSTM(embed_dim, hidden_dim, bidirectional=True, batch_first=True)
+        # 全连接层：特征映射为标签类别得分
+        self.fc = nn.Linear(hidden_dim * 2, num_labels)
+
+    def forward(self, x):
+        x = self.embedding(x)
+        x, _ = self.bilstm(x)
+        return self.fc(x)
+
+# 模型训练主函数
+def train():
+    # 加载数据集与数据迭代器
+    dataset = NerDataset()
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    # 初始化模型、损失函数、优化器
+    model = BiLSTM_NER()
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+
+    print("开始序列标注模型训练...")
+    model.train()
+    # 迭代训练
+    for epoch in range(epochs):
+        total_loss = 0
+        for x, y in loader:
+            # 模型前向传播
+            out = model(x)
+            # 维度重塑，适配交叉熵损失计算
+            loss = criterion(out.reshape(-1, num_labels), y.reshape(-1))
+            # 梯度清零、反向传播、参数更新
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+
+        # 每5轮打印一次训练损失
+        if epoch % 5 == 0:
+            print(f"Epoch {epoch:2d} | Loss: {total_loss:.4f}")
+
+    print("训练完成！")
+    # 保存训练好的模型权重
+    torch.save(model.state_dict(), "ner_model.pth")
+    print("模型已保存：ner_model.pth")
+
+if __name__ == "__main__":
+    train()
