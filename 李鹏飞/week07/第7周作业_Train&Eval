@@ -1,0 +1,319 @@
+"""Train and validate a NER model on peoples_daily data.
+
+本模块实现命名实体识别（NER）模型的训练和评估流程：
+1. 加载人民日报标注数据集
+2. 使用 BERT + 线性头或 BERT + CRF 进行训练
+3. 在每个 epoch 结束后进行评估
+4. 保存最佳模型和评估结果
+"""
+
+import json
+import os
+import sys
+from pathlib import Path
+from typing import Dict, List
+
+import torch
+import torch.nn as nn
+from seqeval.metrics import f1_score, precision_score, recall_score
+from torch.optim import AdamW
+from tqdm import tqdm
+from transformers import BertTokenizerFast, get_linear_schedule_with_warmup
+from pathlib import Path
+
+# 设置项目路径
+ROOT = Path(__file__).resolve().parent
+SRC_DIR = ROOT.parent / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+# 导入自定义模块
+from dataset_peoples import build_dataloaders, load_label_names
+from model import build_model
+
+# 数据目录和输出目录配置
+DATA_DIR = ROOT.parent / "data" / "peoples_daily"
+OUTPUT_DIR = ROOT.parent / "ner_output"
+LOCAL_BERT_DIR = ROOT.parent.parent / "dir"
+
+
+def evaluate(
+    model: nn.Module,
+    loader,
+    id2label: Dict[int, str],
+    device: torch.device,
+    use_crf: bool,
+):
+    """评估模型性能。
+
+    Args:
+        model: 待评估的 NER 模型
+        loader: 数据加载器（验证集或测试集）
+        id2label: ID 到标签名称的映射字典
+        device: 计算设备（CPU/GPU）
+        use_crf: 是否使用 CRF 层
+
+    Returns:
+        avg_loss: 平均损失
+        accuracy: token 级别的准确率
+        precision: 实体级别的精确率
+        recall: 实体级别的召回率
+        f1: 实体级别的 F1 分数
+        comparisons: 每个样本的详细对比结果（用于分析）
+    """
+    model.eval()
+    total_loss = 0.0
+    total_batches = 0
+    total_tokens = 0
+    correct_tokens = 0
+    all_gold_seqs: List[List[str]] = []
+    all_pred_seqs: List[List[str]] = []
+    comparisons: List[Dict] = []
+
+    with torch.no_grad():
+        for batch in loader:
+            # 将批次数据移动到指定设备
+            input_ids = batch["input_ids"].to(device)
+            attention_mask = batch["attention_mask"].to(device)
+            token_type_ids = batch["token_type_ids"].to(device)
+            labels = batch["labels"].to(device)
+
+            # 根据是否使用 CRF 选择不同的预测方式
+            if use_crf:
+                # CRF 模型：返回 emissions 和损失，需要解码获取预测结果
+                _, loss = model(input_ids, attention_mask, token_type_ids, labels)
+                pred_ids_list = model.decode(input_ids, attention_mask, token_type_ids)
+            else:
+                # 线性头模型：直接返回 logits 和损失
+                logits, loss = model(input_ids, attention_mask, token_type_ids, labels)
+                pred_ids_list = logits.argmax(dim=-1).tolist()
+
+            total_loss += loss.item()
+            total_batches += 1
+
+            # 准备真实标签和原始数据
+            labels_np = labels.cpu().tolist()
+            raw_tokens_batch = batch["raw_tokens"]
+            raw_labels_batch = batch["raw_labels"]
+
+            # 逐个样本处理，构建评估序列
+            for i in range(len(labels_np)):
+                gold_seq: List[str] = []
+                pred_seq: List[str] = []
+                token_comparison: List[Dict[str, str]] = []
+                raw_tokens = raw_tokens_batch[i]
+                raw_labels = raw_labels_batch[i]
+                token_index = 0
+
+                # 遍历每个 token 的标签（跳过 -100 的填充位置）
+                for j, gold_id in enumerate(labels_np[i]):
+                    if gold_id == -100:
+                        continue
+
+                    # 获取预测标签 ID
+                    if use_crf:
+                        pred_id = pred_ids_list[i][j] if j < len(pred_ids_list[i]) else 0
+                    else:
+                        pred_id = pred_ids_list[i][j]
+
+                    # 转换为标签名称
+                    gold_label = id2label[gold_id]
+                    pred_label = id2label.get(pred_id, "O")
+                    gold_seq.append(gold_label)
+                    pred_seq.append(pred_label)
+
+                    # 统计正确预测的 token 数
+                    if gold_label == pred_label:
+                        correct_tokens += 1
+                    total_tokens += 1
+
+                    # 记录每个 token 的对比信息
+                    token_comparison.append(
+                        {
+                            "token": raw_tokens[token_index] if token_index < len(raw_tokens) else "",
+                            "gold": gold_label,
+                            "pred": pred_label,
+                        }
+                    )
+                    token_index += 1
+
+                # 保存该样本的序列和对比信息
+                all_gold_seqs.append(gold_seq)
+                all_pred_seqs.append(pred_seq)
+                comparisons.append(
+                    {
+                        "text": "".join(raw_tokens),
+                        "gold_labels": raw_labels,
+                        "pred_labels": pred_seq,
+                        "token_comparison": token_comparison,
+                    }
+                )
+
+    # 计算各项指标
+    avg_loss = total_loss / max(1, total_batches)
+    accuracy = correct_tokens / max(1, total_tokens)
+    # 使用 seqeval 计算实体级别的精确率、召回率、F1
+    precision = precision_score(all_gold_seqs, all_pred_seqs)
+    recall = recall_score(all_gold_seqs, all_pred_seqs)
+    f1 = f1_score(all_gold_seqs, all_pred_seqs)
+    return avg_loss, accuracy, precision, recall, f1, comparisons
+
+
+def train(args):
+    """训练 NER 模型的主函数。
+
+    Args:
+        args: 命令行参数，包含超参数配置
+    """
+    # 设置计算设备
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"device: {device}")
+
+    # 加载标签体系并构建映射字典
+    label_names = load_label_names(DATA_DIR)
+    label2id = {label: idx for idx, label in enumerate(label_names)}
+    id2label = {idx: label for label, idx in label2id.items()}
+
+    # 配置 BERT 模型路径
+    bert_path = Path(args.bert_path) if args.bert_path else LOCAL_BERT_DIR
+    print(f"bert path: {bert_path}")
+
+    # 初始化分词器（使用快速版本以支持 word_ids）
+    tokenizer = BertTokenizerFast.from_pretrained(str(bert_path))
+
+    # 构建数据加载器
+    train_loader, val_loader, _ = build_dataloaders(
+        tokenizer=tokenizer,
+        label2id=label2id,
+        batch_size=args.batch_size,
+        max_length=args.max_length,
+        data_dir=DATA_DIR,
+    )
+
+    # 构建模型并移动到指定设备
+    model = build_model(use_crf=args.use_crf, bert_path=str(bert_path), num_labels=len(label_names)).to(device)
+
+    # 分组设置优化器参数：BERT 主干和学习头使用不同的学习率
+    bert_params = list(model.bert.parameters())
+    head_params = list(model.classifier.parameters()) + list(model.dropout.parameters())
+    if args.use_crf:
+        head_params += list(model.crf.parameters())
+
+    optimizer = AdamW(
+        [
+            {"params": bert_params, "lr": args.lr},
+            {"params": head_params, "lr": args.lr * args.head_lr_mult},
+        ],
+        weight_decay=0.01,
+    )
+
+    # 配置学习率调度器（带预热）
+    total_steps = max(1, len(train_loader) * args.epochs // args.grad_accum)
+    warmup_steps = int(total_steps * args.warmup_ratio)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        num_warmup_steps=warmup_steps,
+        num_training_steps=total_steps,
+    )
+
+    # 创建输出目录
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    best_f1 = 0.0
+    metric_history: List[Dict] = []
+
+    # 开始训练循环
+    for epoch in range(1, args.epochs + 1):
+        model.train()
+        train_loss = 0.0
+        step_count = 0
+
+        # 训练一个 epoch
+        for batch in tqdm(train_loader, desc=f"Train Epoch {epoch}"):
+            input_ids = batch["input_ids"].to(device)
+            attention_mask = batch["attention_mask"].to(device)
+            token_type_ids = batch["token_type_ids"].to(device)
+            labels = batch["labels"].to(device)
+
+            # 前向传播
+            _, loss = model(input_ids, attention_mask, token_type_ids, labels)
+
+            # 反向传播
+            loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # 梯度裁剪防止爆炸
+            optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
+
+            train_loss += loss.item()
+            step_count += 1
+
+        # 计算平均训练损失
+        train_loss /= max(1, step_count)
+
+        # 在验证集上评估
+        val_loss, val_acc, val_prec, val_rec, val_f1, comparisons = evaluate(
+            model, val_loader, id2label, device, args.use_crf
+        )
+
+        # 记录当前 epoch 的指标
+        epoch_metrics = {
+            "epoch": epoch,
+            "train_loss": round(train_loss, 6),
+            "validation_loss": round(val_loss, 6),
+            "validation_token_accuracy": round(val_acc, 6),
+            "validation_precision": round(val_prec, 6),
+            "validation_recall": round(val_rec, 6),
+            "validation_f1": round(val_f1, 6),
+        }
+        metric_history.append(epoch_metrics)
+
+        # 保存详细的对比结果到 JSON 文件
+        comparison_path = OUTPUT_DIR / f"validation_comparison_epoch{epoch}.json"
+        with open(comparison_path, "w", encoding="utf-8") as fout:
+            json.dump({"metrics": epoch_metrics, "comparisons": comparisons}, fout, ensure_ascii=False, indent=2)
+
+        # 打印训练进度
+        print(
+            f"Epoch {epoch} | train_loss={train_loss:.4f} | val_loss={val_loss:.4f} | "
+            f"val_acc={val_acc:.4f} | val_f1={val_f1:.4f}"
+        )
+        print(f"  saved validation comparison → {comparison_path}")
+
+        # 如果当前 F1 更好，保存最佳模型
+        if val_f1 > best_f1:
+            best_f1 = val_f1
+            checkpoint_path = OUTPUT_DIR / f"best_model_{'crf' if args.use_crf else 'linear'}.pt"
+            torch.save(
+                {
+                    "state_dict": model.state_dict(),
+                    "label2id": label2id,
+                    "id2label": id2label,
+                    "args": vars(args),
+                },
+                checkpoint_path,
+            )
+            print(f"  saved best model → {checkpoint_path}")
+
+    # 保存所有 epoch 的指标历史
+    with open(OUTPUT_DIR / "validation_metrics.json", "w", encoding="utf-8") as fout:
+        json.dump(metric_history, fout, ensure_ascii=False, indent=2)
+
+    print(f"finished training. outputs written to {OUTPUT_DIR}")
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Train and validate NER model on peoples_daily data")
+    parser.add_argument("--bert_path", type=str, default="", help="BERT 模型路径，默认为本地目录")
+    parser.add_argument("--epochs", type=int, default=3, help="训练轮数")
+    parser.add_argument("--batch_size", type=int, default=8, help="批次大小")
+    parser.add_argument("--max_length", type=int, default=128, help="最大序列长度")
+    parser.add_argument("--lr", type=float, default=2e-5, help="BERT 主干的学习率")
+    parser.add_argument("--head_lr_mult", type=float, default=5.0, help="学习头的学习率倍数")
+    parser.add_argument("--warmup_ratio", type=float, default=0.1, help="学习率预热比例")
+    parser.add_argument("--grad_accum", type=int, default=1, help="梯度累积步数")
+    parser.add_argument("--use_crf", action="store_true", help="是否使用 CRF 层")
+    args = parser.parse_args()
+    train(args)
