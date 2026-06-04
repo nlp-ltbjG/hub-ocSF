@@ -1,0 +1,37 @@
+avg_loss: 平均损失
+accuracy: token 级别的准确率
+precision: 实体级别的精确率
+recall: 实体级别的召回率
+f1: 实体级别的 F1 分数
+
+"metrics": {
+    "epoch": 1,
+    "train_loss": 0.107562,
+    "validation_loss": 0.022754,
+    "validation_token_accuracy": 0.992864,
+    "validation_precision": 0.925395,
+    "validation_recall": 0.950135,
+    "validation_f1": 0.937602
+  },
+  
+   "metrics": {
+    "epoch": 2,
+    "train_loss": 0.017444,
+    "validation_loss": 0.019792,
+    "validation_token_accuracy": 0.995126,
+    "validation_precision": 0.94787,
+    "validation_recall": 0.955843,
+    "validation_f1": 0.95184
+  },
+
+   "metrics": {
+    "epoch": 3,
+    "train_loss": 0.006273,
+    "validation_loss": 0.023028,
+    "validation_token_accuracy": 0.995345,
+    "validation_precision": 0.957434,
+    "validation_recall": 0.959447,
+    "validation_f1": 0.95844
+  }
+
+  模型总训练3轮，
