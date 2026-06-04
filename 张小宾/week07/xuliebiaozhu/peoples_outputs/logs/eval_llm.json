@@ -1,0 +1,77 @@
+{
+  "model": "deepseek-v4-flash",
+  "n_samples": 1,
+  "zero_shot": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "tp": 0,
+    "pred_total": 0,
+    "gold_total": 12
+  },
+  "few_shot": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "tp": 0,
+    "pred_total": 0,
+    "gold_total": 12
+  },
+  "detail": [
+    {
+      "text": "民革中央常务副主席周铁农，名誉副主席贾亦斌、彭清源、徐起超、沈求我，副主席李赣骝、童傅、厉无畏、钮小明、朱培康，秘书长刘民复及中常委参加了会议。",
+      "gold": [
+        {
+          "text": "厉无畏",
+          "type": "PER"
+        },
+        {
+          "text": "钮小明",
+          "type": "PER"
+        },
+        {
+          "text": "朱培康",
+          "type": "PER"
+        },
+        {
+          "text": "童傅",
+          "type": "PER"
+        },
+        {
+          "text": "沈求我",
+          "type": "PER"
+        },
+        {
+          "text": "民革中央",
+          "type": "ORG"
+        },
+        {
+          "text": "刘民复",
+          "type": "PER"
+        },
+        {
+          "text": "李赣骝",
+          "type": "PER"
+        },
+        {
+          "text": "贾亦斌",
+          "type": "PER"
+        },
+        {
+          "text": "徐起超",
+          "type": "PER"
+        },
+        {
+          "text": "周铁农",
+          "type": "PER"
+        },
+        {
+          "text": "彭清源",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [],
+      "few_shot": []
+    }
+  ]
+}
