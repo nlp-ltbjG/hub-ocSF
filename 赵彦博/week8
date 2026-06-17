@@ -1,0 +1,129 @@
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = "TRUE"
+import json
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
+vocab_size = 5000
+embed_dim = 64
+hidden_dim = 128
+seq_len = 32
+batch_size = 16
+lr = 0.001
+epochs = 15
+
+def load_jsonl(file_path):
+    data_list = []
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            item = json.loads(line)
+            data_list.append(item)
+    return data_list
+
+class MatchDataset(Dataset):
+    def __init__(self, file_path):
+        self.raw_data = load_jsonl(file_path)
+        self.word2id = {"PAD":0, "UNK":1}
+        for item in self.raw_data:
+            for w in item["sent1"]:
+                if w not in self.word2id:
+                    self.word2id[w] = len(self.word2id)
+            for w in item["sent2"]:
+                if w not in self.word2id:
+                    self.word2id[w] = len(self.word2id)
+    def text2id(self, text):
+        ids = []
+        for w in text:
+            ids.append(self.word2id.get(w, 1))
+        if len(ids) > seq_len:
+            ids = ids[:seq_len]
+        else:
+            ids += [0]*(seq_len - len(ids))
+        return torch.tensor(ids)
+    def __len__(self):
+        return len(self.raw_data)
+    def __getitem__(self, idx):
+        item = self.raw_data[idx]
+        s1 = self.text2id(item["sent1"])
+        s2 = self.text2id(item["sent2"])
+        lab = torch.tensor(int(item["label"]))
+        return s1, s2, lab
+
+class PoolMatchModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.emb = nn.Embedding(vocab_size, embed_dim)
+        self.fc1 = nn.Linear(embed_dim*4, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, 2)
+    def forward(self, s1, s2):
+        e1 = self.emb(s1)
+        e2 = self.emb(s2)
+        vec1 = torch.mean(e1, dim=1)
+        vec2 = torch.mean(e2, dim=1)
+        diff = torch.abs(vec1 - vec2)
+        mul = vec1 * vec2
+        combine = torch.cat([vec1, vec2, diff, mul], dim=-1)
+        out = torch.relu(self.fc1(combine))
+        return self.fc2(out)
+
+class TransMatchModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.emb = nn.Embedding(vocab_size, embed_dim)
+        layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=2, batch_first=True)
+        self.trans = nn.TransformerEncoder(layer, num_layers=1)
+        self.fc = nn.Linear(embed_dim*4, 2)
+    def forward(self, s1, s2):
+        e1 = self.emb(s1)
+        e2 = self.emb(s2)
+        all_seq = torch.cat([e1,e2],dim=1)
+        feat = self.trans(all_seq)
+        vec1 = torch.mean(e1,dim=1)
+        vec2 = torch.mean(e2,dim=1)
+        diff = torch.abs(vec1 - vec2)
+        mul = vec1 * vec2
+        combine = torch.cat([vec1, vec2, diff, mul], dim=-1)
+        return self.fc(combine)
+
+def train_test(model, name, data_file):
+    dataset = MatchDataset(data_file)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    loss_fn = nn.CrossEntropyLoss()
+    opt = optim.Adam(model.parameters(), lr=lr)
+    print(f"\n数据集文件:{data_file} 模型:{name} 训练开始")
+    for epoch in range(epochs):
+        total_loss = 0
+        correct = 0
+        total = 0
+        model.train()
+        for s1,s2,lab in loader:
+            pred = model(s1,s2)
+            loss = loss_fn(pred, lab)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+            total_loss += loss.item()
+            res = torch.argmax(pred, dim=-1)
+            correct += (res == lab).sum().item()
+            total += lab.size(0)
+        acc = correct / total
+        if epoch % 5 == 0:
+            print(f"Epoch{epoch} loss:{total_loss:.3f} acc:{acc:.3f}")
+    print(f"{name} 在{data_file}训练完成")
+
+if __name__ == "__main__":
+    # 数据集1：train训练集
+    model1 = PoolMatchModel()
+    train_test(model1, "均值池匹配模型", "./train")
+    model2 = TransMatchModel()
+    train_test(model2, "Transformer匹配模型", "./train")
+    # 数据集2：validation验证集（满足题目两个数据集要求）
+    model3 = PoolMatchModel()
+    train_test(model3, "均值池匹配模型", "./validation")
+    model4 = TransMatchModel()
+    train_test(model4, "Transformer匹配模型", "./validation")
