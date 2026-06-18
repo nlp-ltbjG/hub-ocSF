@@ -45,7 +45,7 @@ except ImportError:
 
 ROOT       = Path(__file__).parent.parent
 DATA_DIR   = ROOT / "data" / "bq_corpus"
-MODEL_PATH = ROOT.parent / "dir"
+MODEL_PATH = ROOT.parent / "dir_Qwen2"/ "Qwen2-0.5B-Instruct"
 OUTPUT_DIR = ROOT / "outputs_bq"
 
 SYSTEM_PROMPT = (
