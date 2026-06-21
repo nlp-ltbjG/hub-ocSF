@@ -40,3 +40,8 @@ build/
 .venv*/
 model.bin
 **/model.bin
+
+outputs_work
+outputs
+\345\274\240\345\260\217\345\256\276/pretrain_models/
+\345\274\240\345\260\217\345\256\276/week08/textMatch/venv/

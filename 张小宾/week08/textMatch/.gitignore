@@ -1,0 +1,33 @@
+# Python 虚拟环境
+venv/
+.venv/
+env/
+
+# Python 缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 训练产物（checkpoints、图表、日志）
+outputs/
+outputs_work/
+
+# Jupyter notebook 缓存
+.ipynb_checkpoints/
+
+# IDE / 编辑器
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# 大型模型权重文件
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+
+# 日志
+*.log
