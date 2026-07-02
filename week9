@@ -1,0 +1,38 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+import time
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from vllm import LLM, SamplingParams
+
+model_name = "Qwen/Qwen-0.5B-Chat"
+prompt = "简单介绍一下自然语言处理技术"
+
+def base_infer():
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    inputs = tokenizer(prompt, return_tensors="pt")
+    start = time.time()
+    outputs = model.generate(**inputs, max_new_tokens=100)
+    end = time.time()
+    res = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    print("=====原生Transformers推理结果=====")
+    print(res)
+    print(f"原生推理耗时：{end-start:.2f}秒\n")
+
+
+def vllm_infer():
+    sampling_params = SamplingParams(max_tokens=100)
+    llm = LLM(model=model_name)
+    start = time.time()
+    outputs = llm.generate(prompt, sampling_params=sampling_params)
+    end = time.time()
+    print("=====VLLM加速推理结果=====")
+    print(outputs[0].outputs[0].text)
+    print(f"VLLM推理耗时：{end-start:.2f}秒")
+
+if __name__ == "__main__":
+    base_infer()
+    vllm_infer()
+
+print("对比结论：VLLM通过PagedAttention内存优化，推理速度显著快于原生transformers")
+#截屏我不知道怎么上传
