@@ -1,0 +1,77 @@
+
+  {
+    "stats": {
+    "raw": {
+      "is_json": 50,
+      "has_required": 50,
+      "schema_valid": 46,
+      "total_latency": 53.573808908462524
+    },
+    "response_format": {
+      "is_json": 50,
+      "has_required": 50,
+      "schema_valid": 47,
+      "total_latency": 56.20670413970947
+    },
+    "guided_json": {
+      "is_json": 50,
+      "has_required": 50,
+      "schema_valid": 47,
+      "total_latency": 53.85138726234436
+    }
+  },
+  "fails": {
+    "raw": [
+      {
+        "user": "300015 爱尔眼科开盘价",
+        "output": "{\"symbol\": \"爱眼科\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: '爱眼科' does not match '^\\\\d{6}$'"
+      },
+      {
+        "user": "格力电器今日成交量",
+        "output": "{\"symbol\": \"00768\", \"market\": \"SZ\", \"date\": \"2026-05-12\", \"fields\": [\"volume\"], \"adjust\": \"none\"}",
+        "error": "schema: '00768' does not match '^\\\\d{6}$'"
+      },
+      {
+        "user": "查询股票代码 six zero zero five one nine 的收盘",
+        "output": "{\"symbol\": \"SIXO五一九\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: 'SIXO五一九' does not match '^\\\\d{6}$'"
+      }
+    ],
+    "response_format": [
+      {
+        "user": "300015 爱尔眼科开盘价",
+        "output": "{\"symbol\": \"爱眼科\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: '爱眼科' does not match '^\\\\d{6}$'"
+      },
+      {
+        "user": "查询股票代码 six zero zero five one nine 的收盘",
+        "output": "{\"symbol\": \"SIXO五一九\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: 'SIXO五一九' does not match '^\\\\d{6}$'"
+      },
+      {
+        "user": "看下 600.000 今天开盘",
+        "output": "{\"symbol\": \"600.000\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: '600.000' does not match '^\\\\d{6}$'"
+      }
+    ],
+    "guided_json": [
+      {
+        "user": "300015 爱尔眼科开盘价",
+        "output": "{\"symbol\": \"爱眼科\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: '爱眼科' does not match '^\\\\d{6}$'"
+      },
+      {
+        "user": "查询股票代码 six zero zero five one nine 的收盘",
+        "output": "{\"symbol\": \"SIXO五一九\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: 'SIXO五一九' does not match '^\\\\d{6}$'"
+      },
+      {
+        "user": "看下 600.000 今天开盘",
+        "output": "{\"symbol\": \"600.000\", \"market\": \"SH\", \"date\": \"2026-05-12\", \"fields\": [\"close\", \"open\"], \"adjust\": \"none\"}",
+        "error": "schema: '600.000' does not match '^\\\\d{6}$'"
+      }
+    ]
+  },
+  "n": 50
+}
