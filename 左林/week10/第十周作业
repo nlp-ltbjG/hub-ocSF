@@ -1,0 +1,47 @@
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from PyPDF2 import PdfReader
+from docx import Document
+
+embed = SentenceTransformer("all-MiniLM-L6-v2")
+
+def read_file(p):
+    s=""
+    if p.endswith("txt"):
+        with open(p,"r",encoding="utf-8")as f:s=f.read()
+    elif p.endswith("pdf"):
+        r=PdfReader(p)
+        for pg in r.pages:s+=pg.extract_text()+"\n"
+    elif p.endswith("docx"):
+        d=Document(p)
+        for para in d.paragraphs:s+=para.text+"\n"
+    return s
+
+def cut(s,cs=300,ol=50):
+    arr=[]
+    st=0
+    while st<len(s):
+        arr.append(s[st:st+cs])
+        st+=cs-ol
+    return arr
+
+def build(chunks):
+    vec=embed.encode(chunks,convert_to_numpy=True)
+    idx=faiss.IndexFlatL2(vec.shape[1])
+    idx.add(vec)
+    return idx,chunks
+
+def search(q,idx,ck,top=3):
+    v=embed.encode([q],convert_to_numpy=True)
+    _,ids=idx.search(v,top)
+    return "\n".join([ck[i] for i in ids[0]])
+
+if __name__=="__main__":
+    path=input("文件路径：")
+    q=input("问题：")
+    text=read_file(path)
+    chunks=cut(text)
+    index,cks=build(chunks)
+    ans=search(q,index,cks)
+    print("参考内容：\n",ans)
