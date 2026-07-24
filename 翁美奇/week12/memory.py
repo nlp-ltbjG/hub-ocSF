@@ -112,9 +112,7 @@ class AgentMemory:
                 if key not in seen:
                     seen.add(key)
                     history_messages.append({"role": item['role'], "content": item['content']})
-
-        logger.info("[Memory] 检索完成，历史对话: %d 条", len(history_messages))
-
+        
         return {
             "preferences": self.preferences,
             "history": history_messages,
@@ -122,7 +120,6 @@ class AgentMemory:
 
     def write_memory(self, message_content, role):
         doc_id = len(self.history_message)
-        logger.info("[Memory] 写入记忆，role: %s, doc_id: %d, 内容长度: %d", role, doc_id, len(message_content))
 
         record = {
             "id": doc_id,
@@ -142,11 +139,15 @@ class AgentMemory:
         self.save_all()
 
     def save_preference(self, preference_text):
+        logger.info(f"[Memory] save_preference called with: '{preference_text}'")
         if preference_text and preference_text != "NONE":
             if preference_text not in self.preferences:
                 self.preferences.append(preference_text)
-                self.save_all()
-                logger.info("[Memory] 保存新偏好: %s", preference_text)
+                try:
+                    self.save_all()
+                    logger.info("[Memory] 保存新偏好成功: %s", preference_text)
+                except Exception as e:
+                    logger.error(f"[Memory] 保存偏好失败: {e}")
             else:
                 logger.info("[Memory] 偏好已存在，跳过: %s", preference_text)
         else:
@@ -163,10 +164,3 @@ class AgentMemory:
         except Exception as e:
             logger.error(f"Failed to generate embedding: {e}")
             raise
-
-    def parser_answer(self, answer):
-        pattern = r"<memory>(.*?)</memory>"
-        match = re.search(pattern, answer, re.DOTALL)
-        if match:
-            return match.group(1).strip()
-        return None
