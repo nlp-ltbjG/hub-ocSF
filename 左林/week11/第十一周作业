@@ -1,0 +1,35 @@
+# 天气工具函数 单次调用逻辑
+def get_weather(city):
+    weather_dict = {
+        "中山": "晴，27-34℃，南风2级",
+        "深圳": "多云，26-33℃，微风",
+        "广州": "雷阵雨，28-35℃",
+        "北京": "晴天，25-32℃",
+        "上海": "阴天，24-30℃"
+    }
+    if city in weather_dict:
+        return f"{city} 天气：{weather_dict[city]}"
+    else:
+        return f"暂无{city}天气数据"
+
+# 循环主体，持续调用工具
+def main():
+    print("====循环天气查询系统====")
+    print("输入城市名查询，输入quit退出\n")
+    while True:
+        city = input("请输入城市：").strip()
+        # 退出循环条件
+        if city.lower() == "quit":
+            print("程序结束")
+            break
+        # 过滤空输入
+        if not city:
+            print("输入不能为空！")
+            continue
+        # 循环内重复调用天气工具
+        res = get_weather(city)
+        print(res + "\n")
+
+# 程序入口
+if __name__ == "__main__":
+    main()
