@@ -66,24 +66,29 @@ def run(question: str, max_steps: int = 10, agent_memory: AgentMemory = None) ->
     """
     from tools import TOOLS_MAP, TOOLS_SCHEMA
     
-    memory_context = ""
+    memory_preferences = []
+    memory_history = []
     if agent_memory:
-        retrieved_context = agent_memory.retrieve_context(question, top_k=3)
-        if retrieved_context:
-            memory_context = "\n\n历史对话参考：\n" + "\n".join(retrieved_context)
-            logger.info(f"[Memory] 检索到 {len(retrieved_context)} 条历史上下文")
-        else:
-            logger.info("[Memory] 未检索到历史上下文")
-    
+        retrieved = agent_memory.retrieve_context(question, top_k=3)
+        memory_preferences = retrieved.get("preferences", [])
+        memory_history = retrieved.get("history", [])
+        logger.info(f"[Memory] 检索到 {len(memory_history)} 条历史对话, {len(memory_preferences)} 条偏好")
+
+    # 偏好拼入 system prompt
+    preference_context = ""
+    if memory_preferences:
+        preference_context = "\n\n用户偏好：\n" + "\n".join(f"- {p}" for p in memory_preferences)
+
+    # 构建消息列表：system(含偏好) + 历史对话(按角色) + 当前问题
     messages = [
-        {"role": "system", "content": FC_SYSTEM_PROMPT + memory_context},
-        {"role": "user",   "content": question},
+        {"role": "system", "content": FC_SYSTEM_PROMPT + preference_context},
     ]
+    for msg in memory_history:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    messages.append({"role": "user", "content": question})
     
     for step in range(1, max_steps + 1):
-        turn_id = f"turn_{int(time.time())}"
-        logger.info(f"[Step {step}] 开始处理，turn_id: {turn_id}")
-        
+
         response = client.chat.completions.create(
             model=MODEL,
             messages=messages,

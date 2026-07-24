@@ -77,28 +77,48 @@ class AgentMemory:
         logger.info("[Memory] 保存完成，对话记录: %d, 偏好: %d", len(self.history_message), len(self.preferences))
 
     def retrieve_context(self, query, top_k=3):
-        preference_texts = [f"用户偏好: {pref}" for pref in self.preferences]
-        logger.info("[Memory] 检索上下文，查询长度: %d, top_k: %d, 偏好数: %d", len(query), top_k, len(preference_texts))
-        
-        if self.dialogue_index.ntotal == 0:
-            buffer_texts = [f"{item['role']}: {item['content']}" for item in self.context_buffer if item['role'] != 'system']
-            logger.info("[Memory] 索引为空，返回缓冲区: %d 条", len(buffer_texts))
-            return preference_texts + buffer_texts
+        """
+        检索与查询相关的上下文。
 
-        query_vec = self._text_to_vector(query)
-        distances, ids = self.dialogue_index.search(query_vec.reshape(1, -1), top_k)
-        
-        retrieved_texts = []
-        for doc_id in ids[0]:
-            if 0 <= doc_id < len(self.history_message):
-                item = self.history_message[doc_id]
-                if item['role'] != 'system':
-                    retrieved_texts.append(f"{item['role']}: {item['content']}")
-        
-        buffer_texts = [f"{item['role']}: {item['content']}" for item in self.context_buffer if item['role'] != 'system']
-        final_prompt_context = preference_texts + buffer_texts + retrieved_texts
-        logger.info("[Memory] 检索完成，缓冲区: %d, 检索结果: %d", len(buffer_texts), len(retrieved_texts))
-        return final_prompt_context
+        返回结构化数据：
+            {
+                "preferences": ["偏好1", "偏好2"],
+                "history": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+            }
+        """
+        logger.info("[Memory] 检索上下文，查询长度: %d, top_k: %d, 偏好数: %d", len(query), top_k, len(self.preferences))
+
+        history_messages = []
+        seen = set()
+
+        # 1. 检索长期记忆（FAISS）
+        if self.dialogue_index.ntotal > 0:
+            query_vec = self._text_to_vector(query)
+            distances, ids = self.dialogue_index.search(query_vec.reshape(1, -1), top_k)
+
+            for doc_id in ids[0]:
+                if 0 <= doc_id < len(self.history_message):
+                    item = self.history_message[doc_id]
+                    if item['role'] != 'system':
+                        key = (item['role'], item['content'])
+                        if key not in seen:
+                            seen.add(key)
+                            history_messages.append({"role": item['role'], "content": item['content']})
+
+        # 2. 追加当前会话缓冲区（短期上下文）
+        for item in self.context_buffer:
+            if item['role'] != 'system':
+                key = (item['role'], item['content'])
+                if key not in seen:
+                    seen.add(key)
+                    history_messages.append({"role": item['role'], "content": item['content']})
+
+        logger.info("[Memory] 检索完成，历史对话: %d 条", len(history_messages))
+
+        return {
+            "preferences": self.preferences,
+            "history": history_messages,
+        }
 
     def write_memory(self, message_content, role):
         doc_id = len(self.history_message)
