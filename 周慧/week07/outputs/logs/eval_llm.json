@@ -1,0 +1,4451 @@
+{
+  "model": "deepseek-chat",
+  "n_samples": 100,
+  "zero_shot": {
+    "precision": 0.7962962962962963,
+    "recall": 0.6039325842696629,
+    "f1": 0.6869009584664537,
+    "tp": 215,
+    "pred_total": 270,
+    "gold_total": 356
+  },
+  "few_shot": {
+    "precision": 0.8410852713178295,
+    "recall": 0.6095505617977528,
+    "f1": 0.7068403908794787,
+    "tp": 217,
+    "pred_total": 258,
+    "gold_total": 356
+  },
+  "detail": [
+    {
+      "text": "他认为，尽管亚洲仍有一些问题有待解决，但数年之内，便能走出谷底，步入缓慢的但是稳妥的复兴之路。",
+      "gold": [
+        {
+          "text": "亚洲",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [],
+      "few_shot": [
+        {
+          "text": "亚洲",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "俄罗斯通过拉脱维亚进行转口贸易，拉从中每年至少能收入5亿美元。",
+      "gold": [
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "拉",
+          "type": "LOC"
+        },
+        {
+          "text": "拉脱维亚",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "拉脱维亚",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "拉脱维亚",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "英国外交大臣库克今天发表声明，谴责巴基斯坦无视国际舆论的压力再次进行核试验，他同时敦促巴基斯坦和印度两国政府为缓解两国间的紧张局势而努力。",
+      "gold": [
+        {
+          "text": "巴基斯坦",
+          "type": "LOC"
+        },
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "巴基斯坦",
+          "type": "LOC"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        },
+        {
+          "text": "库克",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "库克",
+          "type": "PER"
+        },
+        {
+          "text": "巴基斯坦",
+          "type": "LOC"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "库克",
+          "type": "PER"
+        },
+        {
+          "text": "巴基斯坦",
+          "type": "LOC"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "在休斯敦航天城，最值得探究的还是约翰逊太空中心的“幕后秘密”。",
+      "gold": [
+        {
+          "text": "休斯敦航天城",
+          "type": "LOC"
+        },
+        {
+          "text": "约翰逊太空中心",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "休斯敦航天城",
+          "type": "LOC"
+        },
+        {
+          "text": "约翰逊太空中心",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "休斯敦航天城",
+          "type": "LOC"
+        },
+        {
+          "text": "约翰逊太空中心",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "正在芬兰访问的俄罗斯外长普里马科夫在和芬兰外长哈洛宁举行的联合记者招待会上强调，国际社会应敦促印度和巴基斯坦签署《不扩散核武器条约》和《全面禁止核试验条约》，但表示不赞成对印巴实行经济制裁。",
+      "gold": [
+        {
+          "text": "印",
+          "type": "LOC"
+        },
+        {
+          "text": "芬兰",
+          "type": "LOC"
+        },
+        {
+          "text": "巴基斯坦",
+          "type": "LOC"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "普里马科夫",
+          "type": "PER"
+        },
+        {
+          "text": "哈洛宁",
+          "type": "PER"
+        },
+        {
+          "text": "巴",
+          "type": "LOC"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        },
+        {
+          "text": "芬兰",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "芬兰",
+          "type": "LOC"
+        },
+        {
+          "text": "《不扩散核武器条约》",
+          "type": "ORG"
+        },
+        {
+          "text": "巴基斯坦",
+          "type": "LOC"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "普里马科夫",
+          "type": "PER"
+        },
+        {
+          "text": "哈洛宁",
+          "type": "PER"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        },
+        {
+          "text": "《全面禁止核试验条约》",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "芬兰",
+          "type": "LOC"
+        },
+        {
+          "text": "《不扩散核武器条约》",
+          "type": "ORG"
+        },
+        {
+          "text": "巴基斯坦",
+          "type": "LOC"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "普里马科夫",
+          "type": "PER"
+        },
+        {
+          "text": "哈洛宁",
+          "type": "PER"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        },
+        {
+          "text": "《全面禁止核试验条约》",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "这一中药二类新药已在国内2000多家大中型医院临床使用，被评价为目前国内外肿瘤临床较为理想的综合性治疗药。",
+      "gold": [
+        {
+          "text": "中",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "国内",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": []
+    },
+    {
+      "text": "当汤局长为西藏“游说”时，记者感受到他身上散发着浓浓的西藏情结，那是一种发自内心的对这片神奇的土地、对生活在这里的人民的深深的爱。",
+      "gold": [
+        {
+          "text": "汤",
+          "type": "PER"
+        },
+        {
+          "text": "西藏",
+          "type": "LOC"
+        },
+        {
+          "text": "西藏",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "西藏",
+          "type": "LOC"
+        },
+        {
+          "text": "汤局长",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "西藏",
+          "type": "LOC"
+        },
+        {
+          "text": "汤局长",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "三十年代初，在北平就有了“北大老，师大穷，清华、燕京可通融”的说法，那时北大才不过是“而立”之年。",
+      "gold": [
+        {
+          "text": "清华",
+          "type": "ORG"
+        },
+        {
+          "text": "北大",
+          "type": "ORG"
+        },
+        {
+          "text": "北平",
+          "type": "LOC"
+        },
+        {
+          "text": "师大",
+          "type": "ORG"
+        },
+        {
+          "text": "燕京",
+          "type": "ORG"
+        },
+        {
+          "text": "北大",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "清华",
+          "type": "ORG"
+        },
+        {
+          "text": "北平",
+          "type": "LOC"
+        },
+        {
+          "text": "师大",
+          "type": "ORG"
+        },
+        {
+          "text": "燕京",
+          "type": "ORG"
+        },
+        {
+          "text": "北大",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "清华",
+          "type": "ORG"
+        },
+        {
+          "text": "北平",
+          "type": "LOC"
+        },
+        {
+          "text": "师大",
+          "type": "ORG"
+        },
+        {
+          "text": "燕京",
+          "type": "ORG"
+        },
+        {
+          "text": "北大",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "最近，丰田与中国汽车的话题也不少。",
+      "gold": [
+        {
+          "text": "丰田",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "丰田",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "丰田",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "5月26日正午时分，伦敦上万人聚集在通往白金汉宫的皇家大道上。",
+      "gold": [
+        {
+          "text": "伦敦",
+          "type": "LOC"
+        },
+        {
+          "text": "皇家大道",
+          "type": "LOC"
+        },
+        {
+          "text": "白金汉宫",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "伦敦",
+          "type": "LOC"
+        },
+        {
+          "text": "白金汉宫",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "伦敦",
+          "type": "LOC"
+        },
+        {
+          "text": "白金汉宫",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "50年后，今年5月23日，董存瑞的家乡河北省怀来县举办一系列活动告慰英灵。",
+      "gold": [
+        {
+          "text": "怀来县",
+          "type": "LOC"
+        },
+        {
+          "text": "河北省",
+          "type": "LOC"
+        },
+        {
+          "text": "董存瑞",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "董存瑞",
+          "type": "PER"
+        },
+        {
+          "text": "河北省怀来县",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "董存瑞",
+          "type": "PER"
+        },
+        {
+          "text": "河北省怀来县",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "除传统的汉学外，学者互访和合作交流的领域延伸到经济、国际关系、自然科学、中国传统医学等诸多学科。",
+      "gold": [
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [],
+      "few_shot": []
+    },
+    {
+      "text": "厄一客机失事53人丧生22日下午，一架波音727—200型客机在哥伦比亚首都圣菲波哥大以东山区撞山坠毁，机上53人无一生还。",
+      "gold": [
+        {
+          "text": "哥伦比亚",
+          "type": "LOC"
+        },
+        {
+          "text": "圣菲波哥大",
+          "type": "LOC"
+        },
+        {
+          "text": "波音",
+          "type": "ORG"
+        },
+        {
+          "text": "厄",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "哥伦比亚",
+          "type": "LOC"
+        },
+        {
+          "text": "圣菲波哥大",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "哥伦比亚",
+          "type": "LOC"
+        },
+        {
+          "text": "圣菲波哥大",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "入伍后，他们将走上西藏部队的指挥、技术等岗位工作。",
+      "gold": [
+        {
+          "text": "西藏",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "西藏部队",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "西藏",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "山东各级公安机关抓住接警快、出警快、处警快3个环节，建立起了以110为纽带，以巡警为骨干，以派出所为依托，各警种相互衔接、整体作战的快速反应机制。",
+      "gold": [
+        {
+          "text": "山东",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "巡警",
+          "type": "ORG"
+        },
+        {
+          "text": "公安机关",
+          "type": "ORG"
+        },
+        {
+          "text": "派出所",
+          "type": "ORG"
+        },
+        {
+          "text": "山东",
+          "type": "LOC"
+        },
+        {
+          "text": "110",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "巡警",
+          "type": "ORG"
+        },
+        {
+          "text": "公安机关",
+          "type": "ORG"
+        },
+        {
+          "text": "派出所",
+          "type": "ORG"
+        },
+        {
+          "text": "山东",
+          "type": "LOC"
+        },
+        {
+          "text": "110",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "在“一个中国”的前提下，可以在台湾、香港和澳门实行不同于内地的制度，条件可以放得很宽。",
+      "gold": [
+        {
+          "text": "台湾",
+          "type": "LOC"
+        },
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "澳门",
+          "type": "LOC"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "台湾",
+          "type": "LOC"
+        },
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "澳门",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "台湾",
+          "type": "LOC"
+        },
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "澳门",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "●加拿大海军舰艇编队结束访华据新华社上海6月8日电（陈毛弟、刘谦）由加拿大海军太平洋舰队司令巴克海军少将率领的加拿大海军舰艇编队结束对中国为期6天的正式友好访问，今天上午驶离上海，继续他们的环太平洋航行。",
+      "gold": [
+        {
+          "text": "刘谦",
+          "type": "PER"
+        },
+        {
+          "text": "加拿大海军太平洋舰队",
+          "type": "ORG"
+        },
+        {
+          "text": "华",
+          "type": "LOC"
+        },
+        {
+          "text": "巴克",
+          "type": "PER"
+        },
+        {
+          "text": "上海",
+          "type": "LOC"
+        },
+        {
+          "text": "陈毛弟",
+          "type": "PER"
+        },
+        {
+          "text": "加拿大海军舰艇编队",
+          "type": "ORG"
+        },
+        {
+          "text": "太平洋",
+          "type": "LOC"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "加拿大海军舰艇编队",
+          "type": "ORG"
+        },
+        {
+          "text": "上海",
+          "type": "LOC"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "海军",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "加拿大",
+          "type": "LOC"
+        },
+        {
+          "text": "加拿大海军太平洋舰队",
+          "type": "ORG"
+        },
+        {
+          "text": "巴克",
+          "type": "PER"
+        },
+        {
+          "text": "上海",
+          "type": "LOC"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "加拿大",
+          "type": "LOC"
+        },
+        {
+          "text": "刘谦",
+          "type": "PER"
+        },
+        {
+          "text": "巴克",
+          "type": "PER"
+        },
+        {
+          "text": "上海",
+          "type": "LOC"
+        },
+        {
+          "text": "陈毛弟",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "澳门日报社长李成俊在开幕式上说，周恩来总理生前关心澳门，为香港和澳门回归祖国倾注了心血。",
+      "gold": [
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "李成俊",
+          "type": "PER"
+        },
+        {
+          "text": "周恩来",
+          "type": "PER"
+        },
+        {
+          "text": "澳门日报社",
+          "type": "ORG"
+        },
+        {
+          "text": "澳门",
+          "type": "LOC"
+        },
+        {
+          "text": "澳门",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "李成俊",
+          "type": "PER"
+        },
+        {
+          "text": "澳门日报",
+          "type": "ORG"
+        },
+        {
+          "text": "周恩来",
+          "type": "PER"
+        },
+        {
+          "text": "澳门",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "李成俊",
+          "type": "PER"
+        },
+        {
+          "text": "澳门日报",
+          "type": "ORG"
+        },
+        {
+          "text": "周恩来",
+          "type": "PER"
+        },
+        {
+          "text": "澳门",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "●温家宝会见芬兰农林部长据新华社北京6月10日电国务院副总理温家宝今天在京会见了来访的芬兰农林部长卡莱维·海米莱。",
+      "gold": [
+        {
+          "text": "温家宝",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "芬兰农林部",
+          "type": "ORG"
+        },
+        {
+          "text": "京",
+          "type": "LOC"
+        },
+        {
+          "text": "国务院",
+          "type": "ORG"
+        },
+        {
+          "text": "卡莱维·海米莱",
+          "type": "PER"
+        },
+        {
+          "text": "芬兰农林部",
+          "type": "ORG"
+        },
+        {
+          "text": "温家宝",
+          "type": "PER"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "芬兰农林部长",
+          "type": "ORG"
+        },
+        {
+          "text": "温家宝",
+          "type": "PER"
+        },
+        {
+          "text": "卡莱维·海米莱",
+          "type": "PER"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "卡莱维·海米莱",
+          "type": "PER"
+        },
+        {
+          "text": "温家宝",
+          "type": "PER"
+        },
+        {
+          "text": "芬兰",
+          "type": "LOC"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "他说，布隆迪民族和解进程正在取得进展，希望随着布隆迪国内形势的稳定，布中两国在各个领域的友好合作不断加强。",
+      "gold": [
+        {
+          "text": "布",
+          "type": "LOC"
+        },
+        {
+          "text": "布隆迪",
+          "type": "LOC"
+        },
+        {
+          "text": "布隆迪",
+          "type": "LOC"
+        },
+        {
+          "text": "中",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "布中",
+          "type": "LOC"
+        },
+        {
+          "text": "布隆迪",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "布中",
+          "type": "LOC"
+        },
+        {
+          "text": "布隆迪",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "十几年来，恭城先后换了六届县委书记、五任县长，但从没发生过“前任种果，后任砍树”的事，而是一届接着一届干，换人换届不换路，并根据新情况不断增加新内容。",
+      "gold": [
+        {
+          "text": "恭城",
+          "type": "LOC"
+        },
+        {
+          "text": "县委",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "恭城",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "恭城",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "三十年前，年近六旬的蛇口渔民村李育英大娘的老伴患病去世，李大娘成了孤寡老人。",
+      "gold": [
+        {
+          "text": "蛇口",
+          "type": "LOC"
+        },
+        {
+          "text": "李",
+          "type": "PER"
+        },
+        {
+          "text": "李育英",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "蛇口渔民村",
+          "type": "LOC"
+        },
+        {
+          "text": "李育英",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "蛇口渔民村",
+          "type": "LOC"
+        },
+        {
+          "text": "李育英",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "萨默斯说，七国集团将继续支持国际金融机构对俄罗斯进行援助。",
+      "gold": [
+        {
+          "text": "萨默斯",
+          "type": "PER"
+        },
+        {
+          "text": "七国集团",
+          "type": "ORG"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "萨默斯",
+          "type": "PER"
+        },
+        {
+          "text": "七国集团",
+          "type": "ORG"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "萨默斯",
+          "type": "PER"
+        },
+        {
+          "text": "七国集团",
+          "type": "ORG"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "画展开幕那天，中国美术馆的大厅排起了长队，人们争相购买作者介绍手册。",
+      "gold": [
+        {
+          "text": "中国美术馆",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "中国美术馆",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "中国美术馆",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "从这篇调查中可以看出，三桥村村干部置中央的政策于不顾，另订“土政策”，欺上瞒下，多收加收乱收，加重了农民的负担。",
+      "gold": [
+        {
+          "text": "三桥村",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "三桥村",
+          "type": "LOC"
+        },
+        {
+          "text": "村干部",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "三桥村",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "今天，在濑户大桥以东约80公里的海面上，全长3911米、两个主桥墩之间跨度为1991米的明石海峡大桥（见图新华社发共同社照片）正式通车，又打破了英国汉巴大桥跨度1410米的纪录，成为世界上跨度最长的吊桥。",
+      "gold": [
+        {
+          "text": "明石海峡大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "濑户大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "共同社",
+          "type": "ORG"
+        },
+        {
+          "text": "汉巴大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "英国",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "明石海峡大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "濑户大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "英国汉巴大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "共同社",
+          "type": "ORG"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "濑户大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "明石海峡大桥",
+          "type": "LOC"
+        },
+        {
+          "text": "英国汉巴大桥",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "●英国副首相和墨西哥外长将访华新华社北京6月25日电外交部发言人唐国强今天在记者招待会上宣布：应国务院副总理吴邦国的邀请，大不列颠及北爱尔兰联合王国副首相约翰·普雷斯科特将于7月1日至7日对中国进行正式访问。",
+      "gold": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "大不列颠及北爱尔兰联合王国",
+          "type": "LOC"
+        },
+        {
+          "text": "华",
+          "type": "LOC"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "国务院",
+          "type": "ORG"
+        },
+        {
+          "text": "约翰·普雷斯科特",
+          "type": "PER"
+        },
+        {
+          "text": "唐国强",
+          "type": "PER"
+        },
+        {
+          "text": "外交部",
+          "type": "ORG"
+        },
+        {
+          "text": "墨西哥",
+          "type": "LOC"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        },
+        {
+          "text": "吴邦国",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "大不列颠及北爱尔兰联合王国",
+          "type": "LOC"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "国务院",
+          "type": "ORG"
+        },
+        {
+          "text": "约翰·普雷斯科特",
+          "type": "PER"
+        },
+        {
+          "text": "唐国强",
+          "type": "PER"
+        },
+        {
+          "text": "外交部",
+          "type": "ORG"
+        },
+        {
+          "text": "墨西哥",
+          "type": "LOC"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        },
+        {
+          "text": "吴邦国",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "大不列颠及北爱尔兰联合王国",
+          "type": "LOC"
+        },
+        {
+          "text": "约翰·普雷斯科特",
+          "type": "PER"
+        },
+        {
+          "text": "唐国强",
+          "type": "PER"
+        },
+        {
+          "text": "墨西哥",
+          "type": "LOC"
+        },
+        {
+          "text": "吴邦国",
+          "type": "PER"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "“卡西尼”号飞船是1997年10月15日从美国肯尼迪航天中心发射上天的，它的土星之旅将历时7年，行程35亿公里。",
+      "gold": [
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "土星",
+          "type": "LOC"
+        },
+        {
+          "text": "肯尼迪航天中心",
+          "type": "LOC"
+        },
+        {
+          "text": "“卡西尼”号飞船",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "美国肯尼迪航天中心",
+          "type": "LOC"
+        },
+        {
+          "text": "卡西尼",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "肯尼迪航天中心",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "可以预料，具有远见卓识的“科技兴港”战略，定会使香港特区的发展迈上一个新的台阶。",
+      "gold": [
+        {
+          "text": "港",
+          "type": "LOC"
+        },
+        {
+          "text": "香港特区",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "香港特区",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "香港特区",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "敦煌的西边，至今仍保留一段汉长城。",
+      "gold": [
+        {
+          "text": "长城",
+          "type": "LOC"
+        },
+        {
+          "text": "敦煌",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "敦煌",
+          "type": "LOC"
+        },
+        {
+          "text": "汉长城",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "敦煌",
+          "type": "LOC"
+        },
+        {
+          "text": "汉长城",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "来日后，欣嘉拿着奶奶的手谕敲开众亲戚家门，但事实令欣嘉眼神暗淡。",
+      "gold": [
+        {
+          "text": "欣嘉",
+          "type": "PER"
+        },
+        {
+          "text": "欣嘉",
+          "type": "PER"
+        },
+        {
+          "text": "日",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "欣嘉",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "奶奶",
+          "type": "PER"
+        },
+        {
+          "text": "欣嘉",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "对于喜爱李白的读者来说，王瑶先生写于1954年的《李白》，时至今日仍是一本难得的有关李白生平的学术传略；王运熙和李宝均先生的中国古典文学基本知识丛书《李白》（上海古籍出版社，1979年9月第一版），不少人自然也是读过的。",
+      "gold": [
+        {
+          "text": "上海古籍出版社",
+          "type": "ORG"
+        },
+        {
+          "text": "李白",
+          "type": "PER"
+        },
+        {
+          "text": "李白",
+          "type": "PER"
+        },
+        {
+          "text": "李白",
+          "type": "PER"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "李白",
+          "type": "PER"
+        },
+        {
+          "text": "王运熙",
+          "type": "PER"
+        },
+        {
+          "text": "王瑶",
+          "type": "PER"
+        },
+        {
+          "text": "李宝均",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "上海古籍出版社",
+          "type": "ORG"
+        },
+        {
+          "text": "李白",
+          "type": "PER"
+        },
+        {
+          "text": "王运熙",
+          "type": "PER"
+        },
+        {
+          "text": "王瑶",
+          "type": "PER"
+        },
+        {
+          "text": "李宝均",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "上海古籍出版社",
+          "type": "ORG"
+        },
+        {
+          "text": "李白",
+          "type": "PER"
+        },
+        {
+          "text": "王运熙",
+          "type": "PER"
+        },
+        {
+          "text": "王瑶",
+          "type": "PER"
+        },
+        {
+          "text": "李宝均",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "六年一度的菲律宾大选尘埃落定。",
+      "gold": [
+        {
+          "text": "菲律宾",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "菲律宾",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "菲律宾",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "泰山队的巴西外援卡洛斯和海狮队的巴西外援里贝罗各为自己的球队攻入一球。",
+      "gold": [
+        {
+          "text": "里贝罗",
+          "type": "PER"
+        },
+        {
+          "text": "泰山队",
+          "type": "ORG"
+        },
+        {
+          "text": "巴西",
+          "type": "LOC"
+        },
+        {
+          "text": "海狮队",
+          "type": "ORG"
+        },
+        {
+          "text": "巴西",
+          "type": "LOC"
+        },
+        {
+          "text": "卡洛斯",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "里贝罗",
+          "type": "PER"
+        },
+        {
+          "text": "海狮队",
+          "type": "ORG"
+        },
+        {
+          "text": "泰山队",
+          "type": "ORG"
+        },
+        {
+          "text": "卡洛斯",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "里贝罗",
+          "type": "PER"
+        },
+        {
+          "text": "海狮队",
+          "type": "ORG"
+        },
+        {
+          "text": "泰山队",
+          "type": "ORG"
+        },
+        {
+          "text": "卡洛斯",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "有心无力的前卫寰岛队只靠高峰扳回一球。",
+      "gold": [
+        {
+          "text": "前卫寰岛队",
+          "type": "ORG"
+        },
+        {
+          "text": "高峰",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "前卫寰岛队",
+          "type": "ORG"
+        },
+        {
+          "text": "高峰",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "前卫寰岛队",
+          "type": "ORG"
+        },
+        {
+          "text": "高峰",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "新华社北京5月10日电外交部长唐家璇今天下午前往泰国驻华使馆吊唁泰国前总理、泰中友协会长差猜·春哈旺。",
+      "gold": [
+        {
+          "text": "华",
+          "type": "LOC"
+        },
+        {
+          "text": "差猜·春哈旺",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "外交部",
+          "type": "ORG"
+        },
+        {
+          "text": "泰国",
+          "type": "LOC"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        },
+        {
+          "text": "泰中友协会",
+          "type": "ORG"
+        },
+        {
+          "text": "泰国",
+          "type": "LOC"
+        },
+        {
+          "text": "唐家璇",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "差猜·春哈旺",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "泰国",
+          "type": "LOC"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        },
+        {
+          "text": "泰国驻华使馆",
+          "type": "ORG"
+        },
+        {
+          "text": "唐家璇",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "差猜·春哈旺",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "北京",
+          "type": "LOC"
+        },
+        {
+          "text": "泰国驻华使馆",
+          "type": "ORG"
+        },
+        {
+          "text": "唐家璇",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "江泽民同志多次指出：根据当前干部队伍的状况和存在问题，在对干部进行教育中，要强调讲学习、讲政治、讲正气。",
+      "gold": [
+        {
+          "text": "江泽民",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "江泽民",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "江泽民",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "叶利钦当天对新闻界说，他已就国家杜马第三次表决同杜马议会党团和议员团领导人交换了意见。",
+      "gold": [
+        {
+          "text": "杜马议会党团",
+          "type": "ORG"
+        },
+        {
+          "text": "国家杜马",
+          "type": "ORG"
+        },
+        {
+          "text": "议员团",
+          "type": "ORG"
+        },
+        {
+          "text": "叶利钦",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "国家杜马",
+          "type": "ORG"
+        },
+        {
+          "text": "叶利钦",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "杜马议会党团",
+          "type": "ORG"
+        },
+        {
+          "text": "国家杜马",
+          "type": "ORG"
+        },
+        {
+          "text": "叶利钦",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "全国人大常委会委员、法律委员会副主任委员李伯勇、全国人大常委会副秘书长吕聪敏和英国驻华使节到机场送行。",
+      "gold": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "华",
+          "type": "LOC"
+        },
+        {
+          "text": "李伯勇",
+          "type": "PER"
+        },
+        {
+          "text": "全国人大常委会",
+          "type": "ORG"
+        },
+        {
+          "text": "法律委员会",
+          "type": "ORG"
+        },
+        {
+          "text": "全国人大常委会",
+          "type": "ORG"
+        },
+        {
+          "text": "吕聪敏",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "李伯勇",
+          "type": "PER"
+        },
+        {
+          "text": "英国驻华使节",
+          "type": "ORG"
+        },
+        {
+          "text": "法律委员会",
+          "type": "ORG"
+        },
+        {
+          "text": "全国人大常委会",
+          "type": "ORG"
+        },
+        {
+          "text": "吕聪敏",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "李伯勇",
+          "type": "PER"
+        },
+        {
+          "text": "法律委员会",
+          "type": "ORG"
+        },
+        {
+          "text": "全国人大常委会",
+          "type": "ORG"
+        },
+        {
+          "text": "吕聪敏",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "唐家璇在贺电中指出，中、阿建交20年来，在两国领导人的关怀下，经过两国政府和人民的共同努力，中、阿在政治、经济、贸易、文化、卫生等领域的合作卓有成效，对许多国际和地区重大问题有着广泛的共识，并一贯相互同情，相互支持。",
+      "gold": [
+        {
+          "text": "中",
+          "type": "LOC"
+        },
+        {
+          "text": "中",
+          "type": "LOC"
+        },
+        {
+          "text": "阿",
+          "type": "LOC"
+        },
+        {
+          "text": "唐家璇",
+          "type": "PER"
+        },
+        {
+          "text": "阿",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "阿",
+          "type": "LOC"
+        },
+        {
+          "text": "中",
+          "type": "LOC"
+        },
+        {
+          "text": "唐家璇",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "阿",
+          "type": "LOC"
+        },
+        {
+          "text": "中",
+          "type": "LOC"
+        },
+        {
+          "text": "唐家璇",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "本报平壤4月29日电记者赵嘉鸣报道：朝鲜劳动党总书记金正日近日提出朝鲜民族团结五大方针，并表示，朝鲜半岛北南双方应在民族大团结旗帜下积极进行对话，增加相互间信任，改善目前北南间敌对关系，并在双方共同努力下争取早日实现朝鲜半岛的自主和平统一。",
+      "gold": [
+        {
+          "text": "赵嘉鸣",
+          "type": "PER"
+        },
+        {
+          "text": "朝鲜半岛",
+          "type": "LOC"
+        },
+        {
+          "text": "朝鲜劳动党",
+          "type": "ORG"
+        },
+        {
+          "text": "朝鲜半岛",
+          "type": "LOC"
+        },
+        {
+          "text": "平壤",
+          "type": "LOC"
+        },
+        {
+          "text": "金正日",
+          "type": "PER"
+        },
+        {
+          "text": "朝鲜",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "赵嘉鸣",
+          "type": "PER"
+        },
+        {
+          "text": "朝鲜半岛",
+          "type": "LOC"
+        },
+        {
+          "text": "朝鲜劳动党",
+          "type": "ORG"
+        },
+        {
+          "text": "朝鲜",
+          "type": "LOC"
+        },
+        {
+          "text": "平壤",
+          "type": "LOC"
+        },
+        {
+          "text": "金正日",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "赵嘉鸣",
+          "type": "PER"
+        },
+        {
+          "text": "朝鲜半岛",
+          "type": "LOC"
+        },
+        {
+          "text": "朝鲜劳动党",
+          "type": "ORG"
+        },
+        {
+          "text": "平壤",
+          "type": "LOC"
+        },
+        {
+          "text": "金正日",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "联合国维和五十年－－－访米亚特副秘书长",
+      "gold": [
+        {
+          "text": "米亚特",
+          "type": "PER"
+        },
+        {
+          "text": "联合国",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "米亚特",
+          "type": "PER"
+        },
+        {
+          "text": "联合国",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "米亚特",
+          "type": "PER"
+        },
+        {
+          "text": "联合国",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "本报香港5月19日电记者李中文报道：尤伯杯羽毛球赛小组赛今日在此间结束了最后一轮争夺。",
+      "gold": [
+        {
+          "text": "尤伯",
+          "type": "PER"
+        },
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "李中文",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "李中文",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "李中文",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "如陈怀国的一组短篇，从现实生活切入，在对当代军人所面临的某种情感境遇的表现中，写出军事生活中的某些现代意味。",
+      "gold": [
+        {
+          "text": "陈怀国",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "陈怀国",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "陈怀国",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "据新华社东京6月17日电日本首相桥本龙太郎在今天晚上同美国总统克林顿进行电话会谈，他在随后发表的谈话中说，日本正在采取紧急措施制止日元贬值，稳定金融市场。",
+      "gold": [
+        {
+          "text": "日本",
+          "type": "LOC"
+        },
+        {
+          "text": "桥本龙太郎",
+          "type": "PER"
+        },
+        {
+          "text": "日本",
+          "type": "LOC"
+        },
+        {
+          "text": "东京",
+          "type": "LOC"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "克林顿",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "日本首相桥本龙太郎",
+          "type": "PER"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "东京",
+          "type": "LOC"
+        },
+        {
+          "text": "美国总统克林顿",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "桥本龙太郎",
+          "type": "PER"
+        },
+        {
+          "text": "日本",
+          "type": "LOC"
+        },
+        {
+          "text": "克林顿",
+          "type": "PER"
+        },
+        {
+          "text": "东京",
+          "type": "LOC"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "美国总统",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "罗干说，中国重视同英国的关系，中英两国在相互尊重、平等互利的基础上发展长期稳定的友好关系，不仅符合两国的根本利益，而且也有助于加强亚欧两大洲之间的合作，有助于世界的和平、稳定与繁荣。",
+      "gold": [
+        {
+          "text": "英",
+          "type": "LOC"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "罗干",
+          "type": "PER"
+        },
+        {
+          "text": "亚",
+          "type": "LOC"
+        },
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "中",
+          "type": "LOC"
+        },
+        {
+          "text": "欧",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "罗干",
+          "type": "PER"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "罗干",
+          "type": "PER"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "江泽民主席去年访美后，根据中美联合声明精神，将在两国使馆互设禁毒官员，这充分说明了两国加强合作、共同禁毒的决心。",
+      "gold": [
+        {
+          "text": "中",
+          "type": "LOC"
+        },
+        {
+          "text": "江泽民",
+          "type": "PER"
+        },
+        {
+          "text": "美",
+          "type": "LOC"
+        },
+        {
+          "text": "美",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "江泽民",
+          "type": "PER"
+        },
+        {
+          "text": "中美",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "江泽民",
+          "type": "PER"
+        },
+        {
+          "text": "中美",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "本报联合国6月9日电记者符福洲、周德武报道：出席关于毒品问题特别联大的中国代表团团长、国务委员罗干今天上午在纽约联合国总部会晤了联合国秘书长科菲·安南。",
+      "gold": [
+        {
+          "text": "联",
+          "type": "ORG"
+        },
+        {
+          "text": "联合国",
+          "type": "ORG"
+        },
+        {
+          "text": "符福洲",
+          "type": "PER"
+        },
+        {
+          "text": "纽约联合国总部",
+          "type": "ORG"
+        },
+        {
+          "text": "联合国",
+          "type": "ORG"
+        },
+        {
+          "text": "罗干",
+          "type": "PER"
+        },
+        {
+          "text": "中国代表团",
+          "type": "ORG"
+        },
+        {
+          "text": "周德武",
+          "type": "PER"
+        },
+        {
+          "text": "科菲·安南",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "联合国总部",
+          "type": "LOC"
+        },
+        {
+          "text": "符福洲",
+          "type": "PER"
+        },
+        {
+          "text": "联合国",
+          "type": "ORG"
+        },
+        {
+          "text": "罗干",
+          "type": "PER"
+        },
+        {
+          "text": "周德武",
+          "type": "PER"
+        },
+        {
+          "text": "纽约",
+          "type": "LOC"
+        },
+        {
+          "text": "科菲·安南",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "联合国总部",
+          "type": "LOC"
+        },
+        {
+          "text": "符福洲",
+          "type": "PER"
+        },
+        {
+          "text": "联合国",
+          "type": "ORG"
+        },
+        {
+          "text": "罗干",
+          "type": "PER"
+        },
+        {
+          "text": "周德武",
+          "type": "PER"
+        },
+        {
+          "text": "纽约",
+          "type": "LOC"
+        },
+        {
+          "text": "科菲·安南",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "黄卫平新著《中国政治体制改革纵横谈》，已由中央编译出版社出版。",
+      "gold": [
+        {
+          "text": "黄卫平",
+          "type": "PER"
+        },
+        {
+          "text": "中央编译出版社",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "黄卫平",
+          "type": "PER"
+        },
+        {
+          "text": "中央编译出版社",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "黄卫平",
+          "type": "PER"
+        },
+        {
+          "text": "中央编译出版社",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "周先生的这番话，给我留下了十分深刻的印象。",
+      "gold": [
+        {
+          "text": "周",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "周先生",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "周先生",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "下半场第23分钟，智利队在前场左侧靠近底线处开出任意球，9号萨莫拉诺门前先顶，被守门员扑出后，11号萨拉斯跟上再补一脚，守门员虽然又抱住皮球，但人球皆在球门线内，城门已失。",
+      "gold": [
+        {
+          "text": "智利队",
+          "type": "ORG"
+        },
+        {
+          "text": "萨拉斯",
+          "type": "PER"
+        },
+        {
+          "text": "萨莫拉诺",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "智利队",
+          "type": "ORG"
+        },
+        {
+          "text": "萨拉斯",
+          "type": "PER"
+        },
+        {
+          "text": "萨莫拉诺",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "智利队",
+          "type": "ORG"
+        },
+        {
+          "text": "萨拉斯",
+          "type": "PER"
+        },
+        {
+          "text": "萨莫拉诺",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "美国总统克林顿派代表前来祝贺。",
+      "gold": [
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "克林顿",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "克林顿",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "克林顿",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "连日来，在甘肃天水市伏羲庙前，来自海内外的炎黄子孙以舞龙狮、唱社戏等形式隆重地祭奠伏羲氏这位中华民族世代敬仰的“人文始祖”。",
+      "gold": [
+        {
+          "text": "天水市",
+          "type": "LOC"
+        },
+        {
+          "text": "中华",
+          "type": "LOC"
+        },
+        {
+          "text": "伏羲",
+          "type": "PER"
+        },
+        {
+          "text": "甘肃",
+          "type": "LOC"
+        },
+        {
+          "text": "伏羲庙",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "甘肃天水市伏羲庙",
+          "type": "LOC"
+        },
+        {
+          "text": "伏羲氏",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "甘肃天水市",
+          "type": "LOC"
+        },
+        {
+          "text": "伏羲庙",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "中联部部长戴秉国与代表团举行了工作会谈。",
+      "gold": [
+        {
+          "text": "中联部",
+          "type": "ORG"
+        },
+        {
+          "text": "戴秉国",
+          "type": "PER"
+        },
+        {
+          "text": "代表团",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "中联部",
+          "type": "ORG"
+        },
+        {
+          "text": "戴秉国",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "中联部",
+          "type": "ORG"
+        },
+        {
+          "text": "戴秉国",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "对此，法国总理若斯潘表示赞赏，并表达了相同的见解。",
+      "gold": [
+        {
+          "text": "法国",
+          "type": "LOC"
+        },
+        {
+          "text": "若斯潘",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "法国",
+          "type": "LOC"
+        },
+        {
+          "text": "若斯潘",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "法国",
+          "type": "LOC"
+        },
+        {
+          "text": "若斯潘",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "按照瑞士联邦最高法院的裁决，这笔存款归还菲律宾后，首先存在一个第三方账户上，等马科斯的遗孀伊梅尔达得到公正审判并被证实有罪时，这笔钱才能转给菲律宾政府。",
+      "gold": [
+        {
+          "text": "菲律宾",
+          "type": "LOC"
+        },
+        {
+          "text": "伊梅尔达",
+          "type": "PER"
+        },
+        {
+          "text": "马科斯",
+          "type": "PER"
+        },
+        {
+          "text": "瑞士联邦最高法院",
+          "type": "ORG"
+        },
+        {
+          "text": "菲律宾",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "菲律宾政府",
+          "type": "ORG"
+        },
+        {
+          "text": "伊梅尔达",
+          "type": "PER"
+        },
+        {
+          "text": "马科斯",
+          "type": "PER"
+        },
+        {
+          "text": "瑞士联邦最高法院",
+          "type": "ORG"
+        },
+        {
+          "text": "菲律宾",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "菲律宾政府",
+          "type": "ORG"
+        },
+        {
+          "text": "伊梅尔达",
+          "type": "PER"
+        },
+        {
+          "text": "马科斯",
+          "type": "PER"
+        },
+        {
+          "text": "瑞士联邦最高法院",
+          "type": "ORG"
+        },
+        {
+          "text": "菲律宾",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "印尼农业部长贾斯蒂卡最近披露，为了增加粮食生产，印尼将兴修水利，改善排灌系统，使用优质高产抗虫害的种子，鼓励商人和银行向农民提供所需的资金，开垦沼泽地和空闲地段以增加可耕地，从国外引进先进技术系统等等。",
+      "gold": [
+        {
+          "text": "印尼农业部",
+          "type": "ORG"
+        },
+        {
+          "text": "印尼",
+          "type": "LOC"
+        },
+        {
+          "text": "贾斯蒂卡",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "贾斯蒂卡",
+          "type": "PER"
+        },
+        {
+          "text": "印尼",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "贾斯蒂卡",
+          "type": "PER"
+        },
+        {
+          "text": "印尼",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "他们组织骨干教师围绕邓小平理论，联系实际编写了一整套教材，使邓小平理论学习由战役式集中学习变为系统的长期学习并在深化和运用上下功夫。",
+      "gold": [
+        {
+          "text": "邓小平",
+          "type": "PER"
+        },
+        {
+          "text": "邓小平",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "邓小平",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "邓小平",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "去年12月3日这天，对于32岁的张雅茹女士而言，是一个值得庆贺的日子。",
+      "gold": [
+        {
+          "text": "张雅茹",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "张雅茹",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "张雅茹",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "张登义认为，当代人的海洋意识应该集中于一点：建设海洋经济强国。",
+      "gold": [
+        {
+          "text": "张登义",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "张登义",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "张登义",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "当稽查干部从收银台搜查出一堆已开具过的收款收据时，这位不服税务稽查而骂骂咧咧的陈小姐顿时瞠目结舌。",
+      "gold": [
+        {
+          "text": "陈",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "陈小姐",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "陈小姐",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "1995年3月，前李卜村的一个村民，自办了一个标准件厂，为解决流动资金找刘彦彬。",
+      "gold": [
+        {
+          "text": "前李卜村",
+          "type": "LOC"
+        },
+        {
+          "text": "刘彦彬",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "前李卜村",
+          "type": "LOC"
+        },
+        {
+          "text": "刘彦彬",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "前李卜村",
+          "type": "LOC"
+        },
+        {
+          "text": "刘彦彬",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "俄罗斯国家统计委员会主席尤尔科夫及该委员会计算机中心的一些负责人8日被捕。",
+      "gold": [
+        {
+          "text": "计算机中心",
+          "type": "ORG"
+        },
+        {
+          "text": "尤尔科夫",
+          "type": "PER"
+        },
+        {
+          "text": "俄罗斯国家统计委员会",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "该委员会计算机中心",
+          "type": "ORG"
+        },
+        {
+          "text": "尤尔科夫",
+          "type": "PER"
+        },
+        {
+          "text": "俄罗斯国家统计委员会",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "尤尔科夫",
+          "type": "PER"
+        },
+        {
+          "text": "俄罗斯国家统计委员会",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "首都海淀区的干部、教师、工人、企业家，慷慨地为西柏坡乡受损的职业中学投资三十多万元；朝阳区区长李凤岭率先表态，包建西柏坡塌落的小学校教室及教师宿舍。",
+      "gold": [
+        {
+          "text": "朝阳区",
+          "type": "LOC"
+        },
+        {
+          "text": "西柏坡乡",
+          "type": "LOC"
+        },
+        {
+          "text": "海淀区",
+          "type": "LOC"
+        },
+        {
+          "text": "李凤岭",
+          "type": "PER"
+        },
+        {
+          "text": "西柏坡",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "朝阳区",
+          "type": "LOC"
+        },
+        {
+          "text": "西柏坡乡",
+          "type": "LOC"
+        },
+        {
+          "text": "海淀区",
+          "type": "LOC"
+        },
+        {
+          "text": "李凤岭",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "朝阳区",
+          "type": "LOC"
+        },
+        {
+          "text": "西柏坡乡",
+          "type": "LOC"
+        },
+        {
+          "text": "海淀区",
+          "type": "LOC"
+        },
+        {
+          "text": "李凤岭",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "我们到访之前，全国政协主席李瑞环刚刚圆满结束了对意大利的正式友好访问。",
+      "gold": [
+        {
+          "text": "意大利",
+          "type": "LOC"
+        },
+        {
+          "text": "全国政协",
+          "type": "ORG"
+        },
+        {
+          "text": "李瑞环",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "意大利",
+          "type": "LOC"
+        },
+        {
+          "text": "全国政协",
+          "type": "ORG"
+        },
+        {
+          "text": "李瑞环",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "意大利",
+          "type": "LOC"
+        },
+        {
+          "text": "全国政协",
+          "type": "ORG"
+        },
+        {
+          "text": "李瑞环",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "吉林东丰县第五中学教导处的徐东辉即将成为母亲，怀孕期间体会了母亲的艰辛，她认为怎样礼赞天下的母亲都不为过。",
+      "gold": [
+        {
+          "text": "徐东辉",
+          "type": "PER"
+        },
+        {
+          "text": "吉林",
+          "type": "LOC"
+        },
+        {
+          "text": "东丰县第五中学教导处",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "徐东辉",
+          "type": "PER"
+        },
+        {
+          "text": "吉林东丰县第五中学教导处",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "徐东辉",
+          "type": "PER"
+        },
+        {
+          "text": "吉林东丰县第五中学",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "发展电子商务和企业内部网，对实现这种接近至关重要，但思科更强调情感的交流。",
+      "gold": [
+        {
+          "text": "思科",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "思科",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "思科",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "她的步法与腕上功夫的完美结合更是独特，看她的比赛往往使人恍如欣赏芭蕾舞表演，而忘却这是竞争激烈的赛场……本届汤尤杯赛揭幕战，她首战英国名将曼尔，仅用15分钟便以11∶0、11∶1轻松利落地为印尼队赢得一个开门红。",
+      "gold": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "汤",
+          "type": "PER"
+        },
+        {
+          "text": "尤",
+          "type": "PER"
+        },
+        {
+          "text": "曼尔",
+          "type": "PER"
+        },
+        {
+          "text": "印尼队",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "印尼队",
+          "type": "ORG"
+        },
+        {
+          "text": "曼尔",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "英国",
+          "type": "LOC"
+        },
+        {
+          "text": "印尼队",
+          "type": "ORG"
+        },
+        {
+          "text": "曼尔",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "香港市民步行筹善款本报讯香港一万多市民日前徒步行程八公里，为香港公益金筹得四百多万港元的善款。",
+      "gold": [
+        {
+          "text": "香港",
+          "type": "LOC"
+        },
+        {
+          "text": "香港公益金",
+          "type": "ORG"
+        },
+        {
+          "text": "香港",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "香港公益金",
+          "type": "ORG"
+        },
+        {
+          "text": "香港",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "香港公益金",
+          "type": "ORG"
+        },
+        {
+          "text": "香港",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "美国密执安州立大学的迈克尔·托马肖及其同事在最新一期美国《科学》杂志上发表论文指出，他们在研究芥子植物的近亲植物时发现了这种名叫cbfi的基因，它能开启另一种基因cor。",
+      "gold": [
+        {
+          "text": "密执安州立大学",
+          "type": "ORG"
+        },
+        {
+          "text": "美国《科学》杂志",
+          "type": "ORG"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "迈克尔·托马肖",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "美国《科学》杂志",
+          "type": "ORG"
+        },
+        {
+          "text": "美国密执安州立大学",
+          "type": "ORG"
+        },
+        {
+          "text": "迈克尔·托马肖",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "密执安州立大学",
+          "type": "ORG"
+        },
+        {
+          "text": "美国《科学》杂志",
+          "type": "ORG"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "迈克尔·托马肖",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "中国美国商会是美国在华工商企业界在中国成立的第一个商会组织，主要由美国公司、企业的在京机构和金融、法律界驻京办事处组成，广泛代表美国工商企业界在中国的利益。",
+      "gold": [
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "京",
+          "type": "LOC"
+        },
+        {
+          "text": "华",
+          "type": "LOC"
+        },
+        {
+          "text": "中国美国商会",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "京",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "中国美国商会",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "中国美国商会",
+          "type": "ORG"
+        },
+        {
+          "text": "中国",
+          "type": "LOC"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "选拔领导小组办公室透露：改卷后，将很快对成绩优秀者进行面试。",
+      "gold": [
+        {
+          "text": "选拔领导小组办公室",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "选拔领导小组办公室",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "选拔领导小组办公室",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "日本队教练冈田武史说，很遗憾没进球，尤其是在世界杯上。",
+      "gold": [
+        {
+          "text": "冈田武史",
+          "type": "PER"
+        },
+        {
+          "text": "日本队",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "冈田武史",
+          "type": "PER"
+        },
+        {
+          "text": "日本队",
+          "type": "ORG"
+        },
+        {
+          "text": "世界杯",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "冈田武史",
+          "type": "PER"
+        },
+        {
+          "text": "日本队",
+          "type": "ORG"
+        },
+        {
+          "text": "世界杯",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "美国国务院发言人鲁宾23日说，美国政府随时准备在哥伦比亚和平进程中提供帮助，美哥两国关系将能够“翻开新的一页”。",
+      "gold": [
+        {
+          "text": "哥",
+          "type": "LOC"
+        },
+        {
+          "text": "美国国务院",
+          "type": "ORG"
+        },
+        {
+          "text": "哥伦比亚",
+          "type": "LOC"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "鲁宾",
+          "type": "PER"
+        },
+        {
+          "text": "美",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "鲁宾",
+          "type": "PER"
+        },
+        {
+          "text": "美国国务院",
+          "type": "ORG"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "哥伦比亚",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "鲁宾",
+          "type": "PER"
+        },
+        {
+          "text": "美国国务院",
+          "type": "ORG"
+        },
+        {
+          "text": "美国",
+          "type": "LOC"
+        },
+        {
+          "text": "哥伦比亚",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "住友信托银行是日本第二信托银行。",
+      "gold": [
+        {
+          "text": "日本",
+          "type": "LOC"
+        },
+        {
+          "text": "住友信托银行",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "日本",
+          "type": "LOC"
+        },
+        {
+          "text": "住友信托银行",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "日本",
+          "type": "LOC"
+        },
+        {
+          "text": "住友信托银行",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "国家测绘局将采用全球卫星定位系统、地理信息系统、遥感及数据通讯等世界先进的技术为主要手段，使基础测绘工作牢固地建立在技术进步的基础上。",
+      "gold": [
+        {
+          "text": "国家测绘局",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "国家测绘局",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "国家测绘局",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "长达32天的俄罗斯政府危机于4月24日暂告结束，俄罗斯国家杜马在当天的秘密表决中以251票赞成、25票反对，通过了叶利钦总统对基里延科的总理提名。",
+      "gold": [
+        {
+          "text": "基里延科",
+          "type": "PER"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "俄罗斯国家杜马",
+          "type": "ORG"
+        },
+        {
+          "text": "叶利钦",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "俄罗斯政府",
+          "type": "ORG"
+        },
+        {
+          "text": "基里延科",
+          "type": "PER"
+        },
+        {
+          "text": "俄罗斯国家杜马",
+          "type": "ORG"
+        },
+        {
+          "text": "叶利钦",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "基里延科",
+          "type": "PER"
+        },
+        {
+          "text": "俄罗斯",
+          "type": "LOC"
+        },
+        {
+          "text": "俄罗斯国家杜马",
+          "type": "ORG"
+        },
+        {
+          "text": "叶利钦",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "本报记者翟启运《时代潮》杂志记者张平福",
+      "gold": [
+        {
+          "text": "《时代潮》杂志",
+          "type": "ORG"
+        },
+        {
+          "text": "翟启运",
+          "type": "PER"
+        },
+        {
+          "text": "张平福",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "《时代潮》杂志",
+          "type": "ORG"
+        },
+        {
+          "text": "翟启运",
+          "type": "PER"
+        },
+        {
+          "text": "张平福",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "《时代潮》",
+          "type": "ORG"
+        },
+        {
+          "text": "翟启运",
+          "type": "PER"
+        },
+        {
+          "text": "张平福",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "5月4日上午，长沙市芙蓉区人民法院开庭审理了喻晖与该医院“打假索赔”一案，院方没有出庭并要求庭外调解，遭到喻晖拒绝。",
+      "gold": [
+        {
+          "text": "长沙市",
+          "type": "LOC"
+        },
+        {
+          "text": "芙蓉区人民法院",
+          "type": "ORG"
+        },
+        {
+          "text": "喻晖",
+          "type": "PER"
+        },
+        {
+          "text": "喻晖",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "长沙市芙蓉区人民法院",
+          "type": "ORG"
+        },
+        {
+          "text": "该医院",
+          "type": "ORG"
+        },
+        {
+          "text": "喻晖",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "长沙市芙蓉区人民法院",
+          "type": "ORG"
+        },
+        {
+          "text": "喻晖",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "联合国环境规划署在为纪念今年“世界环境日”而出版的特刊中指出，威胁海洋环境的因素包括：温室气体排放、过度捕捞、海洋运输、废弃物倾倒、无节制海洋矿业开采、沿海地区开发等。",
+      "gold": [
+        {
+          "text": "联合国环境规划署",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "世界环境日",
+          "type": "ORG"
+        },
+        {
+          "text": "联合国环境规划署",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "联合国环境规划署",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "红十字和红新月国际联合会22日在这里发表的1998年《世界灾难报告》说，自汽车问世一个世纪以来，世界公路交通事故共造成3000万人丧生，每年至少要造成50万人死亡，1000多万人受伤。",
+      "gold": [
+        {
+          "text": "红十字和红新月国际联合会",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "红十字和红新月国际联合会",
+          "type": "ORG"
+        },
+        {
+          "text": "1998年",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "红十字和红新月国际联合会",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "统计局的报告认为，菲贸易赤字剧减的原因是受东南亚金融危机的影响，第一季度的货物进口，尤其是大公司的设备进口持续下降；而同期的出口却继续保持快速增长。",
+      "gold": [
+        {
+          "text": "东南亚",
+          "type": "LOC"
+        },
+        {
+          "text": "统计局",
+          "type": "ORG"
+        },
+        {
+          "text": "菲",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "东南亚",
+          "type": "LOC"
+        },
+        {
+          "text": "统计局",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "东南亚",
+          "type": "LOC"
+        },
+        {
+          "text": "统计局",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "尼日利亚队与欧洲和南美球队相比，他们在门前只有一个动作，那就是射门，他们绝不把球倒来倒去，白白浪费一次又一次的机会。",
+      "gold": [
+        {
+          "text": "南美",
+          "type": "LOC"
+        },
+        {
+          "text": "欧洲",
+          "type": "LOC"
+        },
+        {
+          "text": "尼日利亚队",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "南美",
+          "type": "LOC"
+        },
+        {
+          "text": "欧洲",
+          "type": "LOC"
+        },
+        {
+          "text": "尼日利亚队",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "尼日利亚队",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "埃及政府严禁荒废耕地埃及副总理兼农业和土地开发部长瓦利六日宣布，埃及政府将视闲置和荒废耕地为违法行为。",
+      "gold": [
+        {
+          "text": "农业和土地开发部",
+          "type": "ORG"
+        },
+        {
+          "text": "埃及",
+          "type": "LOC"
+        },
+        {
+          "text": "埃及",
+          "type": "LOC"
+        },
+        {
+          "text": "埃及",
+          "type": "LOC"
+        },
+        {
+          "text": "瓦利",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "埃及副总理兼农业和土地开发部长瓦利",
+          "type": "PER"
+        },
+        {
+          "text": "埃及政府",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "瓦利",
+          "type": "PER"
+        },
+        {
+          "text": "埃及",
+          "type": "LOC"
+        },
+        {
+          "text": "埃及政府",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "辽大注重外国留学生能力培养辽宁大学自1965年以来，招收外国留学生3000余人。",
+      "gold": [
+        {
+          "text": "辽大",
+          "type": "ORG"
+        },
+        {
+          "text": "辽宁大学",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "辽大",
+          "type": "ORG"
+        },
+        {
+          "text": "辽宁大学",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "辽大",
+          "type": "ORG"
+        },
+        {
+          "text": "辽宁大学",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "创刊号发表了罗点点回忆父亲罗瑞卿将军的长篇纪实文学，有『八一三抗战专题』，有新老作家肖乾、冯骥才、余华等人的作品，栏目有《过去的新闻》、《永远的童年》等，由华夏杂志社出版发行。",
+      "gold": [
+        {
+          "text": "冯骥才",
+          "type": "PER"
+        },
+        {
+          "text": "肖乾",
+          "type": "PER"
+        },
+        {
+          "text": "华夏杂志社",
+          "type": "ORG"
+        },
+        {
+          "text": "罗点点",
+          "type": "PER"
+        },
+        {
+          "text": "罗瑞卿",
+          "type": "PER"
+        },
+        {
+          "text": "余华",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "冯骥才",
+          "type": "PER"
+        },
+        {
+          "text": "肖乾",
+          "type": "PER"
+        },
+        {
+          "text": "华夏杂志社",
+          "type": "ORG"
+        },
+        {
+          "text": "罗点点",
+          "type": "PER"
+        },
+        {
+          "text": "罗瑞卿",
+          "type": "PER"
+        },
+        {
+          "text": "余华",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "冯骥才",
+          "type": "PER"
+        },
+        {
+          "text": "肖乾",
+          "type": "PER"
+        },
+        {
+          "text": "华夏杂志社",
+          "type": "ORG"
+        },
+        {
+          "text": "罗点点",
+          "type": "PER"
+        },
+        {
+          "text": "罗瑞卿",
+          "type": "PER"
+        },
+        {
+          "text": "余华",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "洪湖一位姓樊的技术人员，听到凌然三下荆州请专家的故事，主动带着一个助手来到农庄；华中农业大学的数名学生也要求来多福农庄干一番事业。",
+      "gold": [
+        {
+          "text": "华中农业大学",
+          "type": "ORG"
+        },
+        {
+          "text": "凌然",
+          "type": "PER"
+        },
+        {
+          "text": "洪湖",
+          "type": "LOC"
+        },
+        {
+          "text": "多福农庄",
+          "type": "LOC"
+        },
+        {
+          "text": "荆州",
+          "type": "LOC"
+        },
+        {
+          "text": "樊",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "华中农业大学",
+          "type": "ORG"
+        },
+        {
+          "text": "凌然",
+          "type": "PER"
+        },
+        {
+          "text": "多福农庄",
+          "type": "ORG"
+        },
+        {
+          "text": "洪湖",
+          "type": "LOC"
+        },
+        {
+          "text": "荆州",
+          "type": "LOC"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "华中农业大学",
+          "type": "ORG"
+        },
+        {
+          "text": "凌然",
+          "type": "PER"
+        },
+        {
+          "text": "多福农庄",
+          "type": "ORG"
+        },
+        {
+          "text": "洪湖",
+          "type": "LOC"
+        },
+        {
+          "text": "荆州",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "自6月1日以来，议会两院一直就本财政年度印度所面临的种种问题进行激烈辩论，部分议员就犯罪率上升和大量案件久拖不决等问题向法律部和内政部提出质询。",
+      "gold": [
+        {
+          "text": "法律部",
+          "type": "ORG"
+        },
+        {
+          "text": "内政部",
+          "type": "ORG"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        },
+        {
+          "text": "议会",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "法律部",
+          "type": "ORG"
+        },
+        {
+          "text": "内政部",
+          "type": "ORG"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        },
+        {
+          "text": "议会",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "法律部",
+          "type": "ORG"
+        },
+        {
+          "text": "内政部",
+          "type": "ORG"
+        },
+        {
+          "text": "印度",
+          "type": "LOC"
+        }
+      ]
+    },
+    {
+      "text": "训练团的官兵们不仅在生活上为他们提供服务，而且出资为他们办起了“康复训练班”。",
+      "gold": [
+        {
+          "text": "训练团",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "训练团",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": []
+    },
+    {
+      "text": "西安电影制片厂厂长张丕民介绍，《惹事生非》在陕西工厂、农村、学校放映时，观众反应强烈，广大观众期盼好的农村题材影片，这是我们拍摄该片后最深切的感受。",
+      "gold": [
+        {
+          "text": "张丕民",
+          "type": "PER"
+        },
+        {
+          "text": "陕西",
+          "type": "LOC"
+        },
+        {
+          "text": "西安电影制片厂",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "张丕民",
+          "type": "PER"
+        },
+        {
+          "text": "陕西",
+          "type": "LOC"
+        },
+        {
+          "text": "西安电影制片厂",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "张丕民",
+          "type": "PER"
+        },
+        {
+          "text": "陕西",
+          "type": "LOC"
+        },
+        {
+          "text": "西安电影制片厂",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "为认真吸取教训，汉正街地税所一边接受重点调查，一边加紧完成征税任务。",
+      "gold": [
+        {
+          "text": "汉正街地税所",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "汉正街地税所",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "汉正街地税所",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "最近一个时期，党中央又就理论武装工作采取了一系列重大举措。",
+      "gold": [
+        {
+          "text": "党中央",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "党中央",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "党中央",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "一九九六年一月，县里决定把宋军从一个条件较好的乡镇调到这里任乡党委书记。",
+      "gold": [
+        {
+          "text": "宋军",
+          "type": "PER"
+        },
+        {
+          "text": "乡党委",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "县里",
+          "type": "ORG"
+        },
+        {
+          "text": "宋军",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "宋军",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "郎平曾找王怡谈及想调她进国家队，而王怡后来也打电话给郎平，声言“祖国需要，我就应尽自己的努力”，表示愿意归队。",
+      "gold": [
+        {
+          "text": "王怡",
+          "type": "PER"
+        },
+        {
+          "text": "郎平",
+          "type": "PER"
+        },
+        {
+          "text": "郎平",
+          "type": "PER"
+        },
+        {
+          "text": "国家队",
+          "type": "ORG"
+        },
+        {
+          "text": "王怡",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "王怡",
+          "type": "PER"
+        },
+        {
+          "text": "国家队",
+          "type": "ORG"
+        },
+        {
+          "text": "郎平",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "王怡",
+          "type": "PER"
+        },
+        {
+          "text": "国家队",
+          "type": "ORG"
+        },
+        {
+          "text": "郎平",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "此后，前锋巴蒂斯图塔两次禁区附近大力抽射、一次点球均直飞牙买加队网窝。",
+      "gold": [
+        {
+          "text": "巴蒂斯图塔",
+          "type": "PER"
+        },
+        {
+          "text": "牙买加队",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "巴蒂斯图塔",
+          "type": "PER"
+        },
+        {
+          "text": "牙买加队",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "巴蒂斯图塔",
+          "type": "PER"
+        },
+        {
+          "text": "牙买加队",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "开赛以来，德国队一直保持低调，他们的老队员多，速度不像有些队那么快。",
+      "gold": [
+        {
+          "text": "德国队",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "德国队",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "德国队",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "张吉龙首先代表中国足协说，我们衷心祝贺布拉特先生当选国际足联主席，同时，祝愿他为促进世界足球的发展作出新贡献。",
+      "gold": [
+        {
+          "text": "布拉特",
+          "type": "PER"
+        },
+        {
+          "text": "中国足协",
+          "type": "ORG"
+        },
+        {
+          "text": "国际足联",
+          "type": "ORG"
+        },
+        {
+          "text": "张吉龙",
+          "type": "PER"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "布拉特",
+          "type": "PER"
+        },
+        {
+          "text": "中国足协",
+          "type": "ORG"
+        },
+        {
+          "text": "国际足联",
+          "type": "ORG"
+        },
+        {
+          "text": "张吉龙",
+          "type": "PER"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "布拉特",
+          "type": "PER"
+        },
+        {
+          "text": "中国足协",
+          "type": "ORG"
+        },
+        {
+          "text": "国际足联",
+          "type": "ORG"
+        },
+        {
+          "text": "张吉龙",
+          "type": "PER"
+        }
+      ]
+    },
+    {
+      "text": "财政部、中国人民银行、最高人民法院、新华社、原国内贸易部等单位纷纷前来瑞金“寻根问祖”，出资维修各自的前身旧址，接受革命传统教育。",
+      "gold": [
+        {
+          "text": "瑞金",
+          "type": "LOC"
+        },
+        {
+          "text": "财政部",
+          "type": "ORG"
+        },
+        {
+          "text": "国内贸易部",
+          "type": "ORG"
+        },
+        {
+          "text": "中国人民银行",
+          "type": "ORG"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "最高人民法院",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "瑞金",
+          "type": "LOC"
+        },
+        {
+          "text": "原国内贸易部",
+          "type": "ORG"
+        },
+        {
+          "text": "财政部",
+          "type": "ORG"
+        },
+        {
+          "text": "中国人民银行",
+          "type": "ORG"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "最高人民法院",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "瑞金",
+          "type": "LOC"
+        },
+        {
+          "text": "原国内贸易部",
+          "type": "ORG"
+        },
+        {
+          "text": "财政部",
+          "type": "ORG"
+        },
+        {
+          "text": "中国人民银行",
+          "type": "ORG"
+        },
+        {
+          "text": "新华社",
+          "type": "ORG"
+        },
+        {
+          "text": "最高人民法院",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "这是中国足球队参加此项比赛以来的最好成绩。",
+      "gold": [
+        {
+          "text": "中国足球队",
+          "type": "ORG"
+        }
+      ],
+      "zero_shot": [
+        {
+          "text": "中国足球队",
+          "type": "ORG"
+        }
+      ],
+      "few_shot": [
+        {
+          "text": "中国足球队",
+          "type": "ORG"
+        }
+      ]
+    },
+    {
+      "text": "天文学家说，该星系形成于宇宙诞生早期，现在到达地球的光线是它形成尚不足8亿年时所发出的。",
+      "gold": [
+        {
+          "text": "地球",
+          "type": "LOC"
+        }
+      ],
+      "zero_shot": [],
+      "few_shot": []
+    }
+  ]
+}
