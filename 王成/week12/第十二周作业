@@ -1,0 +1,212 @@
+#作业完成效果
+PS D:\Work\Study\week12agent\week12 agent\week12 agent\react_financial_agent\src> python agent.py --mode fc --question "宁德时代2023年营业收入是多少？" --interactive
+
+============================================================
+模型: deepseek-v4-flash  实现: Function Calling  模式: 交互式多轮对话
+输入 'quit' / 'exit' 退出对话
+============================================================
+
+请输入问题: 宁德时代的股票代码是多少
+
+============================================================
+问题: 宁德时代的股票代码是多少
+模型: deepseek-v4-flash  实现: Function Calling
+============================================================
+
+[Step 1]
+🧠 Thought: （模型内部推理，Function Calling 版不可见）
+🔧 Action:  company_lookup
+   Input:   {"name": "宁德时代"}
+👁  Obs:     宁德时代 的股票代码为 300750
+
+────────────────────────────────────────────────────────────
+
+✅ Final Answer:
+✅ **宁德时代**的A股股票代码为 **300750**（深交所创业板）。
+
+如果您需要进一步查询宁德时代的财务指标（如营收、净利润、毛利率等）或历史股价数据，随时可以告诉我！
+
+共 2 步，耗时 3.9s
+
+请输入问题: 那五粮液呢？
+
+============================================================
+问题: 那五粮液呢？
+模型: deepseek-v4-flash  实现: Function Calling
+============================================================
+
+[Step 1]
+🧠 Thought: （模型内部推理，Function Calling 版不可见）
+🔧 Action:  company_lookup
+   Input:   {"name": "五粮液"}
+👁  Obs:     五粮液 的股票代码为 000858
+
+────────────────────────────────────────────────────────────
+
+✅ Final Answer:
+好的，汇总一下：
+
+| 公司 | 股票代码 | 交易所 |
+|------|---------|--------|
+| **宁德时代** | **300750** | 深交所创业板 |
+| **五粮液** | **000858** | 深交所主板 |
+
+如果您还需要查询这两家公司的财务指标、历史股价等信息，随时告诉我！
+
+共 2 步，耗时 2.6s
+
+请输入问题: 我的上一个问题是什么？
+
+============================================================
+问题: 我的上一个问题是什么？
+模型: deepseek-v4-flash  实现: Function Calling
+============================================================
+
+────────────────────────────────────────────────────────────
+
+✅ Final Answer:
+您上一个问题是：**"那五粮液呢？"**，即询问五粮液的股票代码。我之前已回复您，五粮液的股票代码为 **000858**（深交所主板）。
+
+如果您是指更早之前的问题，再上一个问题是 **"宁德时代的股票代码是多少"**，我已回复宁德时代代码为 **300750**（深交所创业板）。
+
+共 1 步，耗时 2.6s
+
+请输入问题: 
+
+#代码实现核心步骤 如下为function call原生模式实现代码，手写模式逻辑与如下保持一致
+def run_and_print(question: str = None, max_steps: int = 10,
+                  interactive: bool = False):  # [新增] question 改为可选, 增加 interactive 参数
+    """CLI 入口：单问题模式 或 交互式多轮对话模式"""  # [新增]
+
+    # [新增] 交互式多轮对话模式: messages 跨问题持久化, 支持追问
+    if interactive:
+        messages = [{"role": "system", "content": FC_SYSTEM_PROMPT}]  # [新增] 只初始化 system prompt
+        print(f"\n{'='*60}")                                           # [新增]
+        print(f"模型: {MODEL}  实现: Function Calling  模式: 交互式多轮对话")  # [新增]
+        print(f"输入 'quit' / 'exit' 退出对话")                        # [新增]
+        print('='*60)                                                  # [新增]
+        while True:                                                     # [新增] 交互循环
+            q = input("\n请输入问题: ").strip()                        # [新增] 读取用户输入
+            if q.lower() in ("quit", "exit", "q"):                     # [新增] 退出判断
+                print("再见!")                                         # [新增]
+                break                                                   # [新增]
+            if not q:                                                   # [新增] 空输入跳过
+                continue                                                # [新增]
+            _run_single_question(q, max_steps, messages)               # [新增] 传入持久化的 messages
+        return                                                          # [新增]
+
+    # [原有] 单问题模式
+    _run_single_question(question, max_steps)                           # [新增]
+
+
+def _run_single_question(question: str, max_steps: int,                 # [新增] 提取为独立函数
+                         messages: list = None):
+    """运行单个问题并彩色打印每一步结果"""                               # [新增]
+    print(f"\n{'='*60}")                                               # 打印分隔线
+    print(f"问题: {question}")                                          # 打印问题
+    print(f"模型: {MODEL}  实现: Function Calling")                      # 打印模型和实现方式
+    print('='*60)                                                      # 打印分隔线
+
+    start = time.time()                                                # 记录开始时间
+
+    for step_data in run(question, max_steps=max_steps,                 # [修改] 传入 messages, 支持跨问题记忆
+                         messages=messages):                            # [新增]
+        stype = step_data["type"]                                       # 获取步骤类型
+
+        if stype == "action":                                           # 工具调用步骤
+            print(f"\n[Step {step_data['step']}]")                      # 打印步数标题
+            # Thought 在 FC 版不可见，显示提示
+            print(_c("thought", "🧠 Thought: （模型内部推理，Function Calling 版不可见）"))
+            print(_c("action",  f"🔧 Action:  {step_data['action']}"))
+            print(_c("action",  f"   Input:   {json.dumps(step_data['action_input'], ensure_ascii=False)}"))
+            print(_c("obs",     f"👁  Obs:     {step_data['observation'][:300]}"))
+
+        elif stype == "final":                                          # 最终答案
+            elapsed = time.time() - start                                # 计算耗时
+            print(f"\n{'─'*60}")                                        # 分隔线
+            print(_c("final", f"\n✅ Final Answer:\n{step_data['answer']}"))
+            print(f"\n共 {step_data['step']} 步，耗时 {elapsed:.1f}s")
+
+        elif stype in ("error", "max_steps"):                           # 错误或超步数
+            print(_c("error", f"\n⚠️  {step_data.get('answer', '')}"))
+
+def run(question: str, max_steps: int = 10,
+        messages: list = None) -> Generator[dict, None, None]:  # [新增] messages参数,用于跨问题记忆复用历史对话  # 定义运行函数：返回生成器
+    """                                                   # 函数文档开始
+    执行 Function Calling 版 ReAct 循环，yield 每一步结构化结果  # 功能说明
+
+    格式与 react_manual.run() 保持一致，便于 evaluate.py 统一对比  # 说明：输出格式和手写版一样，方便对比评估
+    """                                                   # 函数文档结束
+    from tools import TOOLS_MAP, TOOLS_SCHEMA              # 导入工具注册表和 Function Calling 的 JSON Schema
+
+    # [新增] 跨问题记忆: 如果外部传入了 messages(包含历史对话),则复用;否则新建
+    if messages is None:
+        messages = [                                        # [原有] 初始化消息列表
+            {"role": "system", "content": FC_SYSTEM_PROMPT},  # system 消息：系统提示词
+            {"role": "user",   "content": question},          # user 消息：用户问题
+        ]
+    else:
+        # [新增] 已有历史对话,只追加新问题,保留之前所有上下文
+        messages.append({"role": "user", "content": question})
+
+    for step in range(1, max_steps + 1):                    # ReAct 主循环
+        response = client.chat.completions.create(           # 调用大模型 API
+            model=MODEL,                                   # 模型名
+            messages=messages,                              # 对话上下文
+            tools=TOOLS_SCHEMA,                             # 传入工具 Schema 列表（告诉模型有哪些工具可用）
+            tool_choice="auto",                             # 让模型自行决定是否调用工具
+            temperature=0,                                  # 温度为 0，确保确定性输出
+        )
+        msg    = response.choices[0].message                # 获取模型的响应消息
+        reason = response.choices[0].finish_reason           # 获取完成原因（stop=直接回答, tool_calls=调用工具）
+
+        # 模型决定直接回答（无工具调用）                    # 注释：finish_reason 为 stop 表示直接给出答案
+        if reason == "stop" or not msg.tool_calls:          # 如果模型停止 或者 没有工具调用请求
+            yield {                                          # 返回最终答案
+                "step":   step,                              # 步数
+                "type":   "final",                           # 类型：最终答案
+                "thought": "",                               # FC 版 Thought 不可见，留空
+                "answer": msg.content or "（模型返回空内容）",  # 模型回答文本
+            }
+            return                                           # 结束循环
+
+        # 模型请求调用工具                                    # 注释：模型要调工具了
+        messages.append(msg)                                # 把模型的消息（包含 tool_calls）追加到上下文
+
+        for tool_call in msg.tool_calls:                     # 遍历模型请求调用的每个工具
+            tool_name = tool_call.function.name               # 获取工具名
+            try:                                             # 尝试解析工具参数
+                tool_args = json.loads(tool_call.function.arguments)  # 把 JSON 参数字符串解析为字典
+            except json.JSONDecodeError:                     # 如果 JSON 解析失败
+                tool_args = {}                               # 回退为空字典
+
+            tool_fn = TOOLS_MAP.get(tool_name)               # 从工具注册表查找函数
+            if tool_fn is None:                              # 如果工具不存在
+                observation = f"未知工具 '{tool_name}'"      # 返回错误信息
+            else:                                            # 工具存在
+                try:                                         # 尝试执行
+                    observation = tool_fn(**tool_args)        # 用 ** 解包参数调用工具函数
+                except TypeError as e:                        # 参数错误
+                    observation = f"工具参数错误: {e}"         # 返回错误
+
+            step_result = {                                  # 构造这一步的结果
+                "step":         step,                        # 步数
+                "type":         "action",                    # 类型：工具调用
+                "thought":      "",   # Function Calling 版 Thought 在模型内部，不可见  # FC 版看不到思考过程
+                "action":       tool_name,                   # 工具名
+                "action_input": tool_args,                   # 工具参数
+                "observation":  str(observation),            # 工具返回结果
+            }
+            yield step_result                                # 通过生成器返回本步结果
+
+            messages.append({                                # 将工具结果回填到上下文
+                "role":         "tool",                      # 角色：tool（FC 版用 tool 角色，不是 user）
+                "tool_call_id": tool_call.id,                # 工具调用 ID：必须和模型请求的 ID 对应
+                "content":      str(observation),            # 内容：工具返回结果
+            })
+
+    yield {                                                  # 超出最大步数
+        "step":   max_steps + 1,                             # 步数标记
+        "type":   "max_steps",                               # 类型：超步数
+        "answer": f"已达最大步数 {max_steps}，未能得出最终答案",  # 错误信息
+    }

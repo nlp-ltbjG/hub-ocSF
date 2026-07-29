@@ -1,0 +1,227 @@
+#1、将获取经纬度的方法提取出来
+  #2、分别在三种工具里面进行注册获取经纬度的方法
+  #3、查询经纬度时直接调用查询经纬度的工具即可
+  """                                                   # 多行文档字符串开始：描述整个脚本的功能
+weather_server.py — 天气查询 MCP Server（方式二：MCP）    # 文件名和简短说明：这是一个 MCP 方式实现天气查询的服务端
+
+教学重点：                                              # 教学重点标题
+  1. 把 src/weather_backend 的同步函数包成 MCP 工具，加一行装饰器即可  # 教学点1：只要在函数上加 @mcp.tool() 装饰器，就能把现成代码变成 MCP 工具
+  2. 与 rag_server 共存于不同子进程，由 Host 统一管理——展示 MCP"多 Server 聚合"  # 教学点2：多个 Server 可以各自独立运行，Host 统一调度，体现 MCP 的多服务架构
+
+使用方式（由 run_mcp.py 作为子进程启动，stdio 通信）：  # 使用说明标题：这个脚本不是直接运行的，是 run_mcp.py 以子进程方式启动的
+  python mode_mcp/servers/weather_server.py            # 命令行示例：如果单独运行，用这个命令（通过 stdin/stdout 通信）
+
+依赖：                                                  # 依赖说明标题
+  pip install mcp httpx                                 # 需要安装的两个包：mcp 是 MCP 协议库，httpx 用于天气 API 请求
+"""                                                     # 文档字符串结束
+
+import sys                                              # 导入 sys 模块：提供系统级接口，比如读取命令行参数和程序退出
+from pathlib import Path                                # 从 pathlib 模块导入 Path 类：处理文件路径（比用字符串拼接更安全、跨平台）
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))  # 把项目根目录（scripts文件往上三级）加到 Python 搜索路径的最前面，这样 import src 时能找到 src 文件夹
+
+from mcp.server.fastmcp import FastMCP  # noqa: E402     # 从 mcp 库导入 FastMCP：一个快速搭建 MCP Server 的框架类，E402 是告诉代码检查工具忽略"import 不在文件顶部"的警告
+
+# 用 as 别名避免同名 tool 函数遮蔽后端函数导致递归           # 注释解释为什么用 as 别名：如果工具函数和后端函数同名，调用时会递归调用自己
+from src.weather_backend import get_weather as _get_weather, get_coordinates as _get_coordinates  # noqa: E402  # 从 src 文件夹导入天气查询函数和坐标查询函数
+
+
+def log(msg: str):                                       # 定义一个叫 log 的函数，接收一个字符串参数 msg，: str 是类型注解表示参数必须是字符串
+    print(msg, file=sys.stderr, flush=True)             # 把消息打印到 stderr（标准错误输出，不是 stdout），flush=True 表示立即输出不缓冲；因为 stdout 是 MCP 协议通道，普通文本只能写 stderr
+
+
+mcp = FastMCP("weather-server")                         # 创建一个 FastMCP 实例，名字叫 "weather-server"，这是这个服务的身份标识，对端连接时会看到这个名字
+
+
+@mcp.tool()                                              # 装饰器：把下面这个 Python 函数注册为 MCP 工具
+def get_weather(city: str) -> str:                      # 定义 get_weather 函数，参数 city 是城市中文名
+    """                                                   # 函数文档字符串开始
+    查询指定城市的当前天气及未来3天预报。                     # 功能描述：查询当前天气加未来 3 天预报
+
+    Args:                                                 # 参数说明标签
+        city: 城市中文名，如 '宁德'、'北京'。同名地名会自动取行政级别更高的（如福建宁德而非西藏宁德）。  # 对 city 参数的详细说明
+
+    Returns:                                              # 返回值说明标签
+        包含温度、湿度、风速、天气状况和3天预报的文字描述。  # 对返回值的描述
+    """                                                   # 函数文档字符串结束
+    return _get_weather(city)                             # 调用真正的后端函数获取天气信息
+
+
+@mcp.tool()                                              # 装饰器：把下面这个函数也注册为 MCP 工具
+def get_coordinates(city: str) -> str:                   # 定义 get_coordinates 函数，参数 city 是城市中文名，返回值是含坐标的文本
+    """                                                   # 函数文档字符串开始
+    查询指定城市的经纬度坐标。                                # 功能描述：查经纬度
+
+    Args:                                                 # 参数说明标签
+        city: 城市中文名，如 '宁德'、'北京'。同名地名会自动取行政级别更高的（如福建宁德而非西藏宁德）。  # 参数说明
+
+    Returns:                                              # 返回值说明标签
+        包含城市全称、经纬度坐标、国家和省份的文字描述。      # 返回值的描述
+    """                                                   # 函数文档字符串结束
+    return _get_coordinates(city)                         # 调用真正的后端函数获取坐标信息
+
+
+if __name__ == "__main__":                               # Python 惯用写法：只有当这个文件被直接运行时才执行下面的代码，被 import 时不执行
+    log("Weather MCP Server 启动中（stdio 模式）...")      # 通过 stderr 打印一条启动信息，告诉用户服务正在启动
+    mcp.run(transport="stdio")                           # 启动 MCP Server，使用 stdio 传输模式
+
+
+        #2、分别在三种工具里面进行注册获取经纬度的方法
+      #Function Call（模型原生函数调用）
+      TOOLS_SCHEMA = [                                         # 定义工具列表：每个元素是一个工具的 JSON Schema
+    {                                                    # 第一个工具：search_annual_report（年报检索）
+        "type": "function",                              # 类型：固定为 function
+        "function": {                                    # 函数定义部分
+            "name": "search_annual_report",              # 工具名：模型会通过这个名称来调用工具
+            "description": (                             # 工具描述：告诉模型这个工具是干什么的
+                "在A股年报语料库中检索与问题最相关的段落。"  # 功能说明第一行
+                "知识库仅收录 5 家公司：贵州茅台(600519)/五粮液(000858)/"  # 知识库范围第一行
+                "宁德时代(300750)/海康威视(002415)/中国平安(601318)，"   # 知识库范围第二行
+                "年份仅 2021/2022/2023。不在库内的公司请勿调用本工具。"    # 知识库范围第三行：超出范围不要调用
+            ),
+            "parameters": {                              # 工具参数定义
+                "type": "object",                        # 参数类型：对象（即多个键值对）
+                "properties": {                          # 参数的具体属性
+                    "query": {                           # 参数 query：检索问题
+                        "type": "string",                # 类型：字符串
+                        "description": (                 # 描述：解释 query 参数的含义和用法
+                            "检索问题，自然语言。重要：不要包含公司名和年份"  # 注意事项第一行
+                            "（已由 stock_code/year 参数过滤），只用简短财务术语，"  # 注意事项第二行
+                            "例如 '营收和净利润'、'研发投入'、'主营业务'。"  # 示例
+                            "把公司名写进 query 会稀释检索精度。"  # 警告：不要加公司名
+                        ),
+                    },
+                    "stock_code": {                      # 参数 stock_code：股票代码过滤（可选）
+                        "type": "string",                # 类型：字符串
+                        "description": "可选，按公司过滤，如 '300750'。不传则跨公司检索",  # 描述：可选参数，不传表示不过滤
+                    },
+                    "year": {                            # 参数 year：年份过滤（可选）
+                        "type": "string",                # 类型：字符串
+                        "description": "可选，按年份过滤：'2021' / '2022' / '2023'",  # 描述：可选，只支持这三个年份
+                    },
+                    "top_k": {                           # 参数 top_k：返回结果数量
+                        "type": "integer",               # 类型：整数
+                        "description": "返回段落数，默认5，建议不超过10",  # 描述：默认 5 条，建议不超过 10 条
+                    },
+                },
+                "required": ["query"],                   # 必填参数：只有 query 是必须填的，其他都是可选的
+            },
+        },
+    },
+    {                                                    # 第二个工具：list_companies（列出所有公司）
+        "type": "function",                              # 类型：固定为 function
+        "function": {                                    # 函数定义部分
+            "name": "list_companies",                    # 工具名：列出公司
+            "description": "列出年报知识库中收录的所有公司、股票代码与可查年份。用于确认目标公司在库内。",  # 描述：说明用途
+            "parameters": {"type": "object", "properties": {}},  # 参数类型为对象，但没有具体属性（无参数）
+        },
+    },
+    {                                                    # 第三个工具：get_weather（天气查询）
+        "type": "function",                              # 类型：固定为 function
+        "function": {                                    # 函数定义部分
+            "name": "get_weather",                       # 工具名：查询天气
+            "description": "查询指定城市的当前天气及未来3天预报。城市用中文名，如 '宁德'、'北京'。",  # 描述：查询天气，城市名用中文
+            "parameters": {                              # 工具参数定义
+                "type": "object",                        # 类型：对象
+                "properties": {                          # 参数属性
+                    "city": {"type": "string", "description": "城市中文名，如 '宁德'"},  # 参数 city：中文城市名，类型字符串
+                },
+                "required": ["city"],                    # 必填参数：city 必须提供
+            },
+        },
+    },
+    {                                                    # 第四个工具：get_coordinates（坐标查询）
+        "type": "function",                              # 类型：固定为 function
+        "function": {                                    # 函数定义部分
+            "name": "get_coordinates",                   # 工具名：查询经纬度坐标
+            "description": "查询指定城市的经纬度坐标。城市用中文名，如 '宁德'、'北京'。",  # 描述
+            "parameters": {                              # 工具参数定义
+                "type": "object",                        # 类型：对象
+                "properties": {                          # 参数属性
+                    "city": {"type": "string", "description": "城市中文名，如 '宁德'"},  # 参数 city
+                },
+                "required": ["city"],                    # 必填参数：city 必须提供
+            },
+        },
+    },
+]
+
+# ── 【教学时刻 2】：工具名 → 后端函数的 dispatch 表 ─────────────────────────  # 教学标记2：工具派发表
+# 业务逻辑在 src/，本文件只负责"协议层"——把模型生成的 tool_call 派发给后端函数。  # 注释：本文件是协议层（跟 AI 打交道），src/ 是业务层（处理数据）
+# 新增工具只需：1) 在上面写 schema；2) 在这里加一行映射。这是 Function Call 的扩展方式。  # 注释：扩展新工具只需两步：加 schema 定义 + 加映射关系
+
+TOOL_DISPATCH = {                                        # 定义工具派发字典：键是工具名，值是对应的后端函数
+    "search_annual_report": search_annual_report,        # search_annual_report 工具 → 调用 search_annual_report 函数
+    "list_companies": list_companies,                    # list_companies 工具 → 调用 list_companies 函数
+    "get_weather": get_weather,                          # get_weather 工具 → 调用 get_weather 函数
+    "get_coordinates": get_coordinates,                  # get_coordinates 工具 → 调用 get_coordinates 函数
+}
+
+# MCP调用 启动获取天气信息服务中增加获取经纬度方法
+  """                                                   # 多行文档字符串开始：描述整个脚本的功能
+weather_server.py — 天气查询 MCP Server（方式二：MCP）    # 文件名和简短说明：这是一个 MCP 方式实现天气查询的服务端
+
+教学重点：                                              # 教学重点标题
+  1. 把 src/weather_backend 的同步函数包成 MCP 工具，加一行装饰器即可  # 教学点1：只要在函数上加 @mcp.tool() 装饰器，就能把现成代码变成 MCP 工具
+  2. 与 rag_server 共存于不同子进程，由 Host 统一管理——展示 MCP"多 Server 聚合"  # 教学点2：多个 Server 可以各自独立运行，Host 统一调度，体现 MCP 的多服务架构
+
+使用方式（由 run_mcp.py 作为子进程启动，stdio 通信）：  # 使用说明标题：这个脚本不是直接运行的，是 run_mcp.py 以子进程方式启动的
+  python mode_mcp/servers/weather_server.py            # 命令行示例：如果单独运行，用这个命令（通过 stdin/stdout 通信）
+
+依赖：                                                  # 依赖说明标题
+  pip install mcp httpx                                 # 需要安装的两个包：mcp 是 MCP 协议库，httpx 用于天气 API 请求
+"""                                                     # 文档字符串结束
+
+import sys                                              # 导入 sys 模块：提供系统级接口，比如读取命令行参数和程序退出
+from pathlib import Path                                # 从 pathlib 模块导入 Path 类：处理文件路径（比用字符串拼接更安全、跨平台）
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))  # 把项目根目录（scripts文件往上三级）加到 Python 搜索路径的最前面，这样 import src 时能找到 src 文件夹
+
+from mcp.server.fastmcp import FastMCP  # noqa: E402     # 从 mcp 库导入 FastMCP：一个快速搭建 MCP Server 的框架类，E402 是告诉代码检查工具忽略"import 不在文件顶部"的警告
+
+# 用 as 别名避免同名 tool 函数遮蔽后端函数导致递归           # 注释解释为什么用 as 别名：如果工具函数和后端函数同名，调用时会递归调用自己
+from src.weather_backend import get_weather as _get_weather, get_coordinates as _get_coordinates  # noqa: E402  # 从 src 文件夹导入天气查询函数和坐标查询函数
+
+
+def log(msg: str):                                       # 定义一个叫 log 的函数，接收一个字符串参数 msg，: str 是类型注解表示参数必须是字符串
+    print(msg, file=sys.stderr, flush=True)             # 把消息打印到 stderr（标准错误输出，不是 stdout），flush=True 表示立即输出不缓冲；因为 stdout 是 MCP 协议通道，普通文本只能写 stderr
+
+
+mcp = FastMCP("weather-server")                         # 创建一个 FastMCP 实例，名字叫 "weather-server"，这是这个服务的身份标识，对端连接时会看到这个名字
+
+
+@mcp.tool()                                              # 装饰器：把下面这个 Python 函数注册为 MCP 工具
+def get_weather(city: str) -> str:                      # 定义 get_weather 函数，参数 city 是城市中文名
+    """                                                   # 函数文档字符串开始
+    查询指定城市的当前天气及未来3天预报。                     # 功能描述：查询当前天气加未来 3 天预报
+
+    Args:                                                 # 参数说明标签
+        city: 城市中文名，如 '宁德'、'北京'。同名地名会自动取行政级别更高的（如福建宁德而非西藏宁德）。  # 对 city 参数的详细说明
+
+    Returns:                                              # 返回值说明标签
+        包含温度、湿度、风速、天气状况和3天预报的文字描述。  # 对返回值的描述
+    """                                                   # 函数文档字符串结束
+    return _get_weather(city)                             # 调用真正的后端函数获取天气信息
+
+
+@mcp.tool()                                              # 装饰器：把下面这个函数也注册为 MCP 工具
+def get_coordinates(city: str) -> str:                   # 定义 get_coordinates 函数，参数 city 是城市中文名，返回值是含坐标的文本
+    """                                                   # 函数文档字符串开始
+    查询指定城市的经纬度坐标。                                # 功能描述：查经纬度
+
+    Args:                                                 # 参数说明标签
+        city: 城市中文名，如 '宁德'、'北京'。同名地名会自动取行政级别更高的（如福建宁德而非西藏宁德）。  # 参数说明
+
+    Returns:                                              # 返回值说明标签
+        包含城市全称、经纬度坐标、国家和省份的文字描述。      # 返回值的描述
+    """                                                   # 函数文档字符串结束
+    return _get_coordinates(city)                         # 调用真正的后端函数获取坐标信息
+
+
+if __name__ == "__main__":                               # Python 惯用写法：只有当这个文件被直接运行时才执行下面的代码，被 import 时不执行
+    log("Weather MCP Server 启动中（stdio 模式）...")      # 通过 stderr 打印一条启动信息，告诉用户服务正在启动
+    mcp.run(transport="stdio")   
+
+      
+      
+  
