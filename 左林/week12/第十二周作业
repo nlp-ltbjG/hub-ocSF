@@ -1,0 +1,86 @@
+import json
+from typing import List, Dict, Any
+
+class MultiTurnAgent:
+    def __init__(self, llm_func, max_history=10):
+        self.llm_func = llm_func
+        self.max_history = max_history  # 最大保存对话轮次
+        self.messages: List[Dict[str, str]] = []  # 对话上下文记忆
+
+    def add_message(self, role: str, content: str):
+        """新增一条对话，自动裁剪超长历史"""
+        self.messages.append({"role": role, "content": content})
+        # 上下文窗口控制，保留最近消息
+        if len(self.messages) > self.max_history * 2:
+            # 保留第一条系统提示，截断中间旧对话
+            keep = self.messages[:1]
+            keep += self.messages[-(self.max_history * 2 -1):]
+            self.messages = keep
+
+    def call_tool(self, tool_name: str, args: Dict) -> str:
+        """模拟工具执行函数，你可以替换成真实业务工具"""
+        if tool_name == "weather_query":
+            city = args.get("city", "")
+            return f"【工具结果】{city} 当前天气：晴，28℃"
+        return f"不存在工具：{tool_name}"
+
+    def run_step(self, user_input: str) -> str:
+        """单轮Agent执行：接收用户提问，自动思考、可选调用工具，返回回答"""
+        # 1. 用户输入存入记忆
+        self.add_message("user", user_input)
+
+        # 2. 将完整上下文送入大模型
+        prompt = f"""
+你是具备工具能力的智能Agent。
+可用工具：
+weather_query(city): 查询城市天气
+
+输出规则：
+1. 需要调用工具，严格输出JSON：{{"tool": "工具名", "args": 参数}}
+2. 不需要工具，直接输出自然语言回答，不要额外符号
+
+对话历史：
+{json.dumps(self.messages, ensure_ascii=False, indent=2)}
+用户最新问题：{user_input}
+        """
+        llm_resp = self.llm_func(prompt).strip()
+
+        # 3. 判断是否触发工具调用
+        try:
+            action = json.loads(llm_resp)
+            if "tool" in action:
+                tool_result = self.call_tool(action["tool"], action["args"])
+                # 工具结果存入上下文，再次让LLM整合结果生成最终回答
+                self.add_message("tool", tool_result)
+                final_prompt = f"""
+结合对话历史与工具返回结果，整理通顺回答用户。
+历史：{json.dumps(self.messages, ensure_ascii=False)}
+"""
+                answer = self.llm_func(final_prompt).strip()
+                self.add_message("assistant", answer)
+                return answer
+        except json.JSONDecodeError:
+            # 无工具调用，直接回复
+            answer = llm_resp
+            self.add_message("assistant", answer)
+            return answer
+
+# ----------------------模拟大模型函数（替换成真实LLM API）----------------------
+def mock_llm(prompt: str) -> str:
+    if "天气" in prompt and "深圳" in prompt:
+        return '''{"tool":"weather_query","args":{"city":"深圳"}}'''
+    elif "天气" in prompt and "北京" in prompt:
+        return '''{"tool":"weather_query","args":{"city":"北京"}}'''
+    else:
+        return "我已理解你的问题，可以继续向我提问。"
+
+
+if __name__ == "__main__":
+    agent = MultiTurnAgent(llm_func=mock_llm, max_history=8)
+    print("===== 多轮对话Agent启动，输入quit退出 =====")
+    while True:
+        query = input("用户：")
+        if query.lower() == "quit":
+            break
+        res = agent.run_step(query)
+        print(f"Agent：{res}\n")
