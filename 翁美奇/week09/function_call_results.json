@@ -1,0 +1,154 @@
+{
+  "stock": {
+    "n": 50,
+    "stats": {
+      "raw": {
+        "is_json": 0,
+        "has_required": 0,
+        "schema_valid": 0,
+        "total_latency": 344.5327627658844
+      },
+      "response_format": {
+        "is_json": 0,
+        "has_required": 0,
+        "schema_valid": 0,
+        "total_latency": 349.4844479560852
+      },
+      "guided_json": {
+        "is_json": 0,
+        "has_required": 0,
+        "schema_valid": 0,
+        "total_latency": 344.04144406318665
+      }
+    },
+    "fails": {
+      "raw": [
+        {
+          "user": "查 600000 今天的开盘价",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵酵酵酵酵酵酵酵酵酵酵蛀 tệấm酵Ο酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵 flawlessricing酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "看看 600519 贵州茅台的收盘",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵酵酵酵酵酵酵酵酵酵酵蛀 tệấm酵Ο酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵 flawlessricing酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "000001 平安银行今日 volume",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger Video酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵蛀 tệấm酵Ο酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵 flawlessricing酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        }
+      ],
+      "response_format": [
+        {
+          "user": "查 600000 今天的开盘价",
+          "output": "{ \"..酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵蛀 tệấm酵Ο酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 flawlessricing酵酵",
+          "error": "JSON syntax: Unterminated string starting at: line 1 column 3 (char 2)"
+        },
+        {
+          "user": "看看 600519 贵州茅台的收盘",
+          "output": "{\"..酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵蛀ấm tệΟ酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 flawlessricing酵酵酵酵酵酵",
+          "error": "JSON syntax: Unterminated string starting at: line 1 column 2 (char 1)"
+        },
+        {
+          "user": "000001 平安银行今日 volume",
+          "output": "{ \"..酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger Video酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵蛀ấm tệΟ酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 flawlessricing酵酵",
+          "error": "JSON syntax: Unterminated string starting at: line 1 column 3 (char 2)"
+        }
+      ],
+      "guided_json": [
+        {
+          "user": "查 600000 今天的开盘价",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵酵酵酵酵酵酵酵酵酵酵蛀 tệấm酵Ο酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵 flawlessricing酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "看看 600519 贵州茅台的收盘",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵酵酵酵酵酵酵酵酵酵酵蛀 tệấm酵Ο酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵 flawlessricing酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "000001 平安银行今日 volume",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger Video酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵蛀 tệấm酵Ο酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵 flawlessricing酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        }
+      ]
+    }
+  },
+  "order": {
+    "n": 50,
+    "stats": {
+      "raw": {
+        "is_json": 0,
+        "has_required": 0,
+        "schema_valid": 0,
+        "total_latency": 347.19540095329285
+      },
+      "response_format": {
+        "is_json": 0,
+        "has_required": 0,
+        "schema_valid": 0,
+        "total_latency": 352.06638169288635
+      },
+      "guided_json": {
+        "is_json": 0,
+        "has_required": 0,
+        "schema_valid": 0,
+        "total_latency": 346.95157957077026
+      }
+    },
+    "fails": {
+      "raw": [
+        {
+          "user": "用户李四要订 3 个 AirPods，电话 13812345678，普通配送",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵酵酵\\ish酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "王五买 1 台 MacBook，手机 13987654321，加急，微信付款",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟish酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵酵酵\\ricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "订 5 本《三体》，联系人 13711112222，快递，支付宝",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵酵酵\\ish酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        }
+      ],
+      "response_format": [
+        {
+          "user": "用户李四要订 3 个 AirPods，电话 13812345678，普通配送",
+          "output": "{\"..酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Unterminated string starting at: line 1 column 2 (char 1)"
+        },
+        {
+          "user": "王五买 1 台 MacBook，手机 13987654321，加急，微信付款",
+          "output": "{\"..酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟish酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Unterminated string starting at: line 1 column 2 (char 1)"
+        },
+        {
+          "user": "订 5 本《三体》，联系人 13711112222，快递，支付宝",
+          "output": "{\"..酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Unterminated string starting at: line 1 column 2 (char 1)"
+        }
+      ],
+      "guided_json": [
+        {
+          "user": "用户李四要订 3 个 AirPods，电话 13812345678，普通配送",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵酵酵\\ish酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "王五买 1 台 MacBook，手机 13987654321，加急，微信付款",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟish酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵酵酵\\ricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        },
+        {
+          "user": "订 5 本《三体》，联系人 13711112222，快递，支付宝",
+          "output": "酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵ger酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵 Video酵ấm酵酵酵酵酵酵酵酵酵 tệΟricing酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵…\n\n酵酵酵酵酵\\ish酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵酵",
+          "error": "JSON syntax: Expecting value: line 1 column 1 (char 0)"
+        }
+      ]
+    }
+  }
+}

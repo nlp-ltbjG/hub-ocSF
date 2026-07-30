@@ -1,0 +1,125 @@
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+import torch
+import os
+from typing import List, Dict, Tuple
+
+
+def build_prompt(query: str, retrieved_chunks: List[Tuple[float, Dict[str, str]]]) -> str:
+    """
+    构建发给 LLM 的提示词
+
+    Prompt 设计原则：
+    1. 明确角色定位
+    2. 提供检索到的上下文
+    3. 指示基于上下文回答
+    4. 处理上下文不足的情况
+    """
+    # 拼接上下文
+    context_parts = []
+    for i, (score, chunk) in enumerate(retrieved_chunks, 1):
+        context_parts.append(f"[文档片段 {i}] (来源: {chunk['source']}, 相似度: {score:.4f})\n{chunk['text']}")
+
+    context = "\n\n---\n\n".join(context_parts)
+
+    prompt = f"""你是一个基于知识库的智能问答助手。请根据以下检索到的文档片段，回答用户的问题。
+
+【使用规则】
+- 如果文档片段包含相关信息，请基于文档内容给出准确、完整的答案
+- 如果文档片段不足以回答问题，请明确说明"根据现有知识库，我无法回答这个问题"
+- 回答时可以引用文档中的具体内容
+- 使用清晰、有条理的语言
+
+【检索到的文档片段】
+{context}
+
+【用户问题】
+{query}
+
+【回答】"""
+
+    return prompt
+
+
+def generate_with_openai(
+    query: str,
+    retrieved_chunks: List[Tuple[float, Dict[str, str]]],
+    api_key: str = None,
+    model: str = "gpt-3.5-turbo",
+    base_url: str = None,
+) -> str:
+    """
+    使用 OpenAI API 生成回答
+
+    支持自定义 base_url，方便使用兼容API的国产模型
+    """
+    from openai import OpenAI
+
+    client_kwargs = {"api_key": api_key or os.environ.get("OPENAI_API_KEY")}
+    if base_url:
+        client_kwargs["base_url"] = base_url
+
+    client = OpenAI(**client_kwargs)
+    prompt = build_prompt(query, retrieved_chunks)
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "你是一个严谨的问答助手，请严格基于提供的文档内容回答问题。"},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.3,
+        max_tokens=1000,
+    )
+
+    return response.choices[0].message.content
+
+
+def generate_retrieval_only(
+    query: str,
+    retrieved_chunks: List[Tuple[float, Dict[str, str]]],
+) -> str:
+    parts = [f"[问题] {query}\n", f"[结果] 找到 {len(retrieved_chunks)} 个相关片段:\n"]
+
+    for i, (score, chunk) in enumerate(retrieved_chunks, 1):
+        parts.append(f"{'='*60}")
+        parts.append(f"【片段 {i}】相似度: {score:.4f} | 来源: {chunk['source']}")
+        parts.append(f"{'='*60}")
+        parts.append(chunk["text"])
+        parts.append("")
+
+    parts.append("=" * 60)
+    parts.append("[提示] 以上是根据向量相似度检索到的相关文档片段。")
+    parts.append("   如需AI生成答案，请配置 OpenAI API 密钥后使用 API 模式。")
+    return "\n".join(parts)
+
+
+def generate_answer(
+    query: str,
+    retrieved_chunks: List[Tuple[float, Dict[str, str]]],
+    mode: str = "auto",
+    api_key: str = None,
+    model: str = "gpt-3.5-turbo",
+    base_url: str = None,
+) -> str:
+ 
+    if mode == "retrieval":
+        return generate_retrieval_only(query, retrieved_chunks)
+
+    if mode == "api" or (mode == "auto" and (api_key or os.environ.get("OPENAI_API_KEY"))):
+        try:
+            return generate_with_openai(query, retrieved_chunks, api_key, model, base_url)
+        except Exception as e:
+            print(f"  API调用失败: {e}")
+            print("  切换到检索模式...")
+            return generate_retrieval_only(query, retrieved_chunks)
+
+    return generate_retrieval_only(query, retrieved_chunks)
+
+
+if __name__ == "__main__":
+    # 测试
+    prompt = build_prompt("什么是CNN？", [
+        (0.95, {"source": "ai.txt", "chunk_id": 0, "text": "CNN是卷积神经网络，用于图像处理。"}),
+    ])
+    print(prompt)

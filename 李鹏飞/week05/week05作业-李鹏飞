@@ -1,0 +1,364 @@
+"""
+大语言模型训练脚本，支持 Transformer，使用Decoder-only架构，含 mask。
+用法:
+    python language_model.py --model lstm --epochs 20
+    python language_model.py --model rnn  --epochs 20
+"""
+
+import math
+import argparse
+import glob
+import random
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import os
+from torch.utils.data import Dataset, DataLoader
+
+
+# ─────────────────────────── 数据 ───────────────────────────
+
+def load_corpus(pattern="*.txt"):
+    texts = []
+    for path in glob.glob(pattern):
+        with open(path, encoding="utf-8", errors="ignore") as f:
+            texts.append(f.read())
+    return "".join(texts)
+
+
+def build_vocab(text):
+    chars = sorted(set(text))
+    char2idx = {c: i for i, c in enumerate(chars)}
+    idx2char = {i: c for c, i in char2idx.items()}
+    return char2idx, idx2char
+
+
+class CharDataset(Dataset):
+    def __init__(self, text, char2idx, seq_len):
+        self.seq_len = seq_len
+        ids = [char2idx[c] for c in text if c in char2idx]
+        self.data = torch.tensor(ids, dtype=torch.long)
+
+    def __len__(self):
+        return max(0, len(self.data) - self.seq_len)
+
+    def __getitem__(self, idx):
+        x = self.data[idx: idx + self.seq_len]
+        y = self.data[idx + 1: idx + self.seq_len + 1]
+        return x, y
+
+
+# ─────────────────────────── 模型 ───────────────────────────
+
+class LM(nn.Module):
+    def __init__(self, vocab_size, embed_dim, hidden_dim, num_layers, model_type, dropout,nheads,):
+        super().__init__()
+        self.embed = nn.Embedding(vocab_size, embed_dim)
+        self.model_type = model_type
+        if model_type == "rnn":
+            rnn_cls = nn.RNN
+            self.rnn = rnn_cls(embed_dim, hidden_dim, num_layers, batch_first=True)
+            self.fc = nn.Linear(hidden_dim, vocab_size)
+        elif model_type == "lstm":
+            rnn_cls = nn.LSTM
+            self.rnn = rnn_cls(embed_dim, hidden_dim, num_layers, batch_first=True)
+            self.fc = nn.Linear(hidden_dim, vocab_size)
+        elif model_type == "transformer":
+
+            # Transformer
+            decoder_layer = nn.TransformerEncoderLayer(d_model = embed_dim,
+                                                       nhead = nheads,
+                                                       dim_feedforward = hidden_dim,
+                                                       dropout = dropout,
+                                                       batch_first=True)
+
+            self.transformer = nn.TransformerEncoder(decoder_layer, num_layers)
+            self.fc = nn.Linear(embed_dim, vocab_size)
+        self.drop = nn.Dropout(dropout)
+
+    #  mask
+    def padding_mask(self,sz):
+        return torch.triu(torch.ones(sz,sz),diagonal=1).bool()
+    def forward(self, x):
+        e = self.drop(self.embed(x))
+        if self.model_type == "transformer":
+            tgt_mask = self.padding_mask(sz=x.size(1))
+            out = self.transformer(e,tgt_mask)
+        else:
+            out, _ = self.rnn(e)
+
+        logits = self.fc(self.drop(out))   # (B, T, V)
+        return logits
+
+
+# ─────────────────────────── 训练 / 评估 ───────────────────────────
+
+def run_epoch(model, loader, criterion, optimizer, device, train=True):
+    model.train(train)
+    total_loss = 0.0
+    total_tokens = 0
+
+    for x, y in loader:
+        x, y = x.to(device), y.to(device)
+        logits = model(x)
+        loss = criterion(logits.reshape(-1, logits.size(-1)), y.reshape(-1))
+
+        if train:
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        total_loss += loss.item() * y.numel()
+        total_tokens += y.numel()
+
+    avg_loss = total_loss / total_tokens
+    ppl = math.exp(avg_loss)
+    return avg_loss, ppl
+
+# ─────────────────────────── 采样策略 ───────────────────────────
+# 贪婪采样
+def greedy_sample(logits):
+    return torch.argmax(logits, dim=-1)
+
+# top_p 采样策略
+def top_p_sample(logits, p = 0.9):
+# top_p 采样策略，从累积概率p下的最小词集中采样
+    sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+    cumulative_probs = torch.cumsum(F.softmax(sorted_logits , dim=-1), dim=-1)
+
+    sorted_indices_to_remove = cumulative_probs > p
+    sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+    sorted_indices_to_remove[..., 0] = False
+
+    indices_to_remove = sorted_indices_to_remove.scatter(
+        -1, sorted_indices, sorted_indices_to_remove
+    )
+    logits = logits.masked_fill(indices_to_remove, float('-inf'))
+
+    probs = F.softmax(logits , dim=-1)
+    return torch.multinomial(probs, num_samples=1).squeeze(-1)
+# ─────────────────────────── 主函数 ───────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model",      default="transformer", choices=["rnn", "lstm","transformer"])
+    parser.add_argument("--epochs",     type=int,   default=10)
+    parser.add_argument("--seq_len",    type=int,   default=16)
+    parser.add_argument("--batch_size", type=int,   default=32)
+    parser.add_argument("--embed_dim",  type=int,   default=128)
+    parser.add_argument("--hidden_dim", type=int,   default=256)
+    parser.add_argument("--num_layers", type=int,   default=4)
+    parser.add_argument("--dropout",    type=float, default=0.1)
+    parser.add_argument("--lr",         type=float, default=2e-3)
+    parser.add_argument("--val_ratio",  type=float, default=0.05)
+    parser.add_argument("--nheads",     type=int, default=4)
+    parser.add_argument("--corpus",     default="corpus.txt")
+    parser.add_argument("--save",       default="best_model.pt")
+    args = parser.parse_args()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"device: {device}  model: {args.model.upper()}")
+
+    # 数据准备
+    text = load_corpus(args.corpus)
+    if text is None:
+        raise FileNotFoundError("未找到任何 .txt 文件，请确认路径正确。")
+    print(f"语料字符数: {len(text):,}")
+
+    char2idx, idx2char = build_vocab(text)
+    vocab_size = len(char2idx)
+    print(f"词表大小: {vocab_size}")
+
+    lines = text.splitlines()
+    random.shuffle(lines)
+    split = int(len(lines) * (1 - args.val_ratio))
+    train_text = "\n".join(lines[:split])
+    val_text   = "\n".join(lines[split:])
+
+    train_ds = CharDataset(train_text, char2idx, args.seq_len)
+    val_ds   = CharDataset(val_text,   char2idx, args.seq_len)
+
+    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, drop_last=True)
+    val_loader   = DataLoader(val_ds,   batch_size=args.batch_size, shuffle=True, drop_last=True)
+
+    # 模型
+    model = LM(
+        vocab_size=vocab_size,
+        embed_dim=args.embed_dim,
+        hidden_dim=args.hidden_dim,
+        num_layers=args.num_layers,
+        model_type=args.model,
+        dropout=args.dropout,
+        nheads=args.nheads
+    ).to(device)
+
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"模型参数量: {total_params:,}")
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+
+    best_val_ppl = float("inf")
+
+    print(f"\n{'Epoch':>6}  {'Train Loss':>10}  {'Train PPL':>10}  {'Val Loss':>10}  {'Val PPL':>10}")
+    print("-" * 56)
+
+    for epoch in range(1, args.epochs + 1):
+        tr_loss, tr_ppl = run_epoch(model, train_loader, criterion, optimizer, device, train=True)
+        with torch.no_grad():
+            va_loss, va_ppl = run_epoch(model, val_loader, criterion, optimizer, device, train=False)
+
+        marker = "  *" if va_ppl < best_val_ppl else ""
+        if va_ppl < best_val_ppl:
+            best_val_ppl = va_ppl
+            torch.save({
+                "model_state": model.state_dict(),
+                "char2idx": char2idx,
+                "idx2char": idx2char,
+                "args": vars(args),
+            }, args.save)
+
+        print(f"{epoch:>6}  {tr_loss:>10.4f}  {tr_ppl:>10.2f}  {va_loss:>10.4f}  {va_ppl:>10.2f}{marker}")
+
+    print(f"\n训练完成。最佳验证 PPL: {best_val_ppl:.2f}  已保存至 {args.save}")
+
+
+def generate_text(model, char2idx, idx2char, prompt, max_length=100,temperature=1.0,
+                  strategy='top_p', top_p=0.9, device='cpu'):
+    """
+    文本生成函数
+
+    Args:
+        model: 训练好的语言模型
+        char2idx: 字符到索引的映射
+        idx2char: 索引到字符的映射
+        prompt: 起始提示文本
+        max_length: 生成的最大长度
+        strategy: 采样策略 ('greedy', 'temperature', 'top_k', 'top_p')
+        top_k: Top-k 参数
+        top_p: Top-p 参数
+        device: 计算设备
+
+    Returns:
+        生成的文本
+    """
+
+
+    # 将提示文本转换为索引
+    input_ids = [char2idx.get(c, 0) for c in prompt if c in char2idx]
+
+    if not input_ids:
+        raise ValueError("Prompt contains no valid characters")
+
+    generated = input_ids.copy()
+
+    with torch.no_grad():
+        for _ in range(max_length):
+            # 准备输入
+            x = torch.tensor([generated], dtype=torch.long).to(device)
+
+            # 获取模型输出
+            logits = model(x)
+
+            # 取最后一个时间步的输出
+            next_token_logits = logits[0, -1, :]
+            if temperature>0:
+                next_token_logits /= temperature
+            # 根据策略采样
+            if strategy == 'top_p':
+                next_token = top_p_sample(next_token_logits, top_p)
+            else:
+                next_token = greedy_sample(next_token_logits)
+
+            # 添加到生成序列
+            next_token_id = next_token.item()
+            generated.append(next_token_id)
+
+            # 如果生成了结束符（可选）
+            if idx2char[next_token_id] == '\n' and len(generated) > len(input_ids) + 10:
+                break
+
+    # 转换回文本
+    generated_text = ''.join([idx2char[idx] for idx in generated])
+    return generated_text
+
+def generate_mode():
+    """输入提示词"""
+
+    """文本生成模式"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_path", default="./best_model.pt", help="模型文件路径")
+    parser.add_argument("--prompt", default=None, help="生成文本的起始提示")
+    parser.add_argument("--max_length", type=int, default=100, help="生成的最大长度")
+    parser.add_argument("--strategy", default="top_p", choices=["greedy", "temperature", "top_k", "top_p"])
+    parser.add_argument("--temperature", type=float, default=0.7, help="温度参数")
+    parser.add_argument("--top_k", type=int, default=50)
+    parser.add_argument("--top_p", type=float, default=0.9)
+    args = parser.parse_args()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # 加载模型
+    checkpoint = torch.load(args.model_path, map_location=device)
+    model_args = type('Args', (), checkpoint['args'])()
+
+    model = LM(
+        vocab_size=len(checkpoint['char2idx']),
+        embed_dim=model_args.embed_dim,
+        hidden_dim=model_args.hidden_dim,
+        num_layers=model_args.num_layers,
+        model_type=model_args.model,
+        dropout=model_args.dropout,
+        nheads=model_args.nheads
+    ).to(device)
+
+    model.load_state_dict(checkpoint['model_state'])
+    model.eval()
+    # 加载字符映射
+    char2idx = checkpoint['char2idx']
+    # 加载索引映射
+    idx2char = checkpoint['idx2char']
+    history_prompt = ""
+
+    # 初始化历史对话
+
+    while True:
+        try:
+            user_input = input("用户：").strip()
+            if user_input in ["exit", "quit", "bye","再见","结束","退出"]:
+                print("\n再见！")
+                break
+            if not user_input:
+                print("请输入有效的内容")
+                continue
+            # 生成完整的提示
+            full_prompt = history_prompt + user_input + "\n"
+            # 生成文本
+            generated = generate_text(
+                model=model,
+                char2idx=char2idx,
+                idx2char=idx2char,
+                prompt=full_prompt,
+                max_length=args.max_length,
+                temperature=args.temperature,
+                strategy=args.strategy,
+                top_p=args.top_p
+            )
+            # 只获取模型生成的答案
+            new_text = generated[len(full_prompt):]
+            history_prompt = generated + "\n"
+            print(f"AI：{new_text.strip()}")
+        except KeyboardInterrupt:
+            print("\n\n检测到中断，退出对话模式")
+            break
+        except Exception as e:
+            print(f"\n错误: {str(e)}")
+            continue
+
+
+if __name__ == "__main__":
+    # 找不到模型时，执行训练
+    if not os.path.exists("best_model.pt"):
+        main()
+    else: # 否则执行生成模式
+        generate_mode()

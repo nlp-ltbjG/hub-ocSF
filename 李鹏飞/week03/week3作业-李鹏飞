@@ -1,0 +1,256 @@
+"""
+train_chinese_cls_rnn.py
+中文句子关键词分类 —— 简单 RNN 版本
+
+任务：5字句子中含有关键字（我）→ 在第几位就是第几类
+模型：Embedding → RNN → 取最后隐藏状态 → Linear → Sigmoid
+优化：Adam (lr=1e-3)   损失：MSELoss   无需 GPU，CPU 即可运行
+
+依赖：torch >= 2.0   (pip install torch)
+"""
+
+import random
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+
+# ─── 超参数 ────────────────────────────────────────────────
+SEED        = 42
+N_SAMPLES   = 4000
+MAXLEN      = 32
+EMBED_DIM   = 64
+HIDDEN_DIM  = 64
+LR          = 1e-3
+BATCH_SIZE  = 64
+EPOCHS      = 20
+TRAIN_RATIO = 0.8
+
+random.seed(SEED)
+torch.manual_seed(SEED)
+
+# ─── 1. 数据生成 ────────────────────────────────────────────
+POS_KEYS = ['我']
+
+TEMPLATES_POS = [
+    "{}喜欢编程",
+    "他爱{}真深",
+    "谁在呼唤{}",
+    "他教{}英语",
+    "{}看书很快",
+    "没人理解{}",
+    "别管{}好吗",
+    "今天{}很忙",
+    "{}们一起玩",
+    "请告诉{}吧",
+    "你在{}身边",
+    "{}在家里呢",
+    "他不喜欢{}",
+    "快帮帮{}吧",
+    "别离开{}哦",
+    "你{}是朋友",
+    "是{}的东西",
+    "{}是他朋友",
+    "{}不爱上班"
+]
+
+# TEMPLATES_NEG = [
+#     "今天天气好",
+#     "他在看书呢",
+#     "我们去公园",
+#     "花开了真美",
+#     "你在做什么",
+#     "猫在睡觉呢",
+#     "这题很难解",
+#     "饭做好了没",
+#     "雨下得很大",
+#     "他跑得非常快",
+#     "门没关好呢",
+#     "手机没电了",
+#     "作业写完了",
+#     "车开得很快",
+#     "天黑了回家",
+#     "她在唱歌呢",
+#     "水烧开了没",
+#     "风刮得很大",
+#     "书放在桌上",
+#     "灯还亮着呢"
+# ]
+#
+# OBJ_WORDS = ['店铺', '餐厅', '产品', '服务', '环境', '系统', '设计', '课程']
+# ADJ_WORDS = ['方便', '简洁', '独特', '舒适', '高效']
+
+# 生成数据
+def make_positive():
+    kw   = random.choice(POS_KEYS)
+    tmpl = random.choice(TEMPLATES_POS)
+    obj  = random.choice(POS_KEYS)
+    try:
+        sent = tmpl.format('我')
+    except Exception:
+        sent = tmpl.format(obj)
+    # if random.random() < 0.3:
+    #     extra = random.choice(POS_KEYS)
+    #     pos   = random.randint(0, len(sent))
+    #     sent  = sent[:pos] + extra
+    return sent
+
+# 生成负样本 因为是多分类的，这里的不需要生成负样本
+# def make_negative():
+#     base = random.choice(TEMPLATES_NEG)
+#     if random.random() < 0.4:
+#         base += random.choice(TEMPLATES_NEG)
+#     return base
+# 获取指定字的位置
+def get_pos(sent,kw='我'):
+    try:
+        return sent.index(kw)+1
+    except Exception:
+        return 0
+# 生成数据
+def build_dataset(n=N_SAMPLES):
+    data = []
+    for _ in range(n // 2):
+        sent= make_positive()
+        pos=get_pos(sent)
+        data.append((sent, pos))
+        if len(sent)>=6:
+            print(sent)
+        #data.append((make_negative(), 0))
+    random.shuffle(data)
+    return data
+
+
+# ─── 2. 词表构建与编码 ──────────────────────────────────────
+# 构建词表
+def build_vocab(data):
+    vocab = {'<PAD>': 0, '<UNK>': 1}
+    for sent, _ in data:
+        for ch in sent:
+            if ch not in vocab:
+                vocab[ch] = len(vocab)
+    return vocab
+
+# 编码
+def encode(sent, vocab, maxlen=MAXLEN):
+    ids  = [vocab.get(ch, 1) for ch in sent]
+    ids  = ids[:maxlen]
+    ids += [0] * (maxlen - len(ids))
+    return ids
+
+
+# ─── 3. Dataset / DataLoader ────────────────────────────────
+class TextDataset(Dataset):
+    # 初始化
+    def __init__(self, data, vocab):
+        #
+        self.X = [encode(s, vocab) for s, _ in data]
+        # 标签
+        self.y = [lb for _, lb in data]
+    # 数据集大小
+    def __len__(self):
+        return len(self.y)
+    # 获取数据
+    def __getitem__(self, i):
+        return (
+            torch.tensor(self.X[i], dtype=torch.long),
+            torch.tensor(self.y[i], dtype=torch.long),
+        )
+
+
+# ─── 4. 模型定义 ────────────────────────────────────────────
+class KeywordRNN(nn.Module):
+    """
+    中文关键词分类器（多分类任务）
+    架构：Embedding → RNN → MaxPool → BN → Dropout → Linear → Sigmoid → (MSELoss)
+    """
+    # 参数：
+    def __init__(self, vocab_size, embed_dim=EMBED_DIM, hidden_dim=HIDDEN_DIM, dropout=0.3):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.rnn       = nn.RNN(embed_dim, hidden_dim, batch_first=True)
+        self.bn        = nn.BatchNorm1d(hidden_dim)
+        self.dropout   = nn.Dropout(dropout)
+        self.fc        = nn.Linear(hidden_dim, 6)
+
+    # 前向传播
+    def forward(self, x):
+        # x: (batch, seq_len)
+        e, _ = self.rnn(self.embedding(x))  # (B, L, hidden_dim)
+        pooled = e.max(dim=1)[0]            # (B, hidden_dim)  对序列做 max pooling
+        pooled = self.dropout(self.bn(pooled))
+        out = self.fc(pooled) # (B,)
+        return out
+
+
+# ─── 5. 训练与评估 ──────────────────────────────────────────
+def evaluate(model, loader):
+    model.eval()
+    correct = total = 0
+    with torch.no_grad():
+        for X, y in loader:
+            prob    = model(X)
+            pred    = prob.argmax(dim=1)
+            correct += (pred == y).sum().item()
+            total   += len(y)
+    return correct / total
+
+
+def train():
+    print("生成数据集...")
+    data  = build_dataset(N_SAMPLES)
+    vocab = build_vocab(data)
+    print(f"  样本数：{len(data)}，词表大小：{len(vocab)}")
+    # 数据集切分
+    split      = int(len(data) * TRAIN_RATIO)
+    train_data = data[:split] # 训练集
+    val_data   = data[split:] # 验证集
+
+    train_loader = DataLoader(TextDataset(train_data, vocab), batch_size=BATCH_SIZE, shuffle=True)
+    val_loader   = DataLoader(TextDataset(val_data,   vocab), batch_size=BATCH_SIZE)
+
+    model     = KeywordRNN(vocab_size=len(vocab))
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"  模型参数量：{total_params:,}\n")
+
+    for epoch in range(1, EPOCHS + 1):
+        model.train()
+        total_loss = 0.0
+        for X, y in train_loader:
+            pred = model(X)
+            loss = criterion(pred, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+
+        avg_loss = total_loss / len(train_loader)
+        val_acc  = evaluate(model, val_loader)
+        print(f"Epoch {epoch:2d}/{EPOCHS}  loss={avg_loss:.4f}  val_acc={val_acc:.4f}")
+
+    print(f"\n最终验证准确率：{evaluate(model, val_loader):.4f}")
+
+    print("\n--- 推理示例 ---")
+    model.eval()
+    test_sents = [
+        '我不喜欢他',
+        '今天我很好',
+        '快来找我吧',
+        '你我是朋友',
+        '他要帮助我',
+    ]
+    # 类别映射说明
+    class_map = {0: "无'我'", 1: "第1位", 2: "第2位", 3: "第3位", 4: "第4位", 5: "第5位"}
+    with torch.no_grad():
+        for sent in test_sents:
+            ids   = torch.tensor([encode(sent, vocab)], dtype=torch.long)
+            prob  = torch.argmax(model(ids)).item()
+            print(prob)
+            label = class_map.get(prob, "未知")
+            print(f"  [{label}({prob:.2f})]  {sent}")
+
+
+if __name__ == '__main__':
+    train()

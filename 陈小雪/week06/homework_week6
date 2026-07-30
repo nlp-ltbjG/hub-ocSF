@@ -1,0 +1,287 @@
+import time
+import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
+
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
+# 设置随机种子，保证可复现
+SEED = 42
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+# ==================== 1. 数据准备 ====================
+print("加载数据...")
+categories = ['alt.atheism', 'soc.religion.christian']
+news_train = fetch_20newsgroups(
+    subset='train', categories=categories,
+    remove=('headers', 'footers', 'quotes'),
+    random_state=SEED
+)
+news_test = fetch_20newsgroups(
+    subset='test', categories=categories,
+    remove=('headers', 'footers', 'quotes'),
+    random_state=SEED
+)
+
+X_train_raw, y_train = news_train.data, news_train.target
+X_test_raw, y_test = news_test.data, news_test.target
+print(f"训练样本: {len(X_train_raw)}, 测试样本: {len(X_test_raw)}")
+
+# ==================== 2. 传统方法：TF-IDF + 逻辑回归 ====================
+print("\n========== TF-IDF + Logistic Regression ==========")
+start = time.time()
+tfidf = TfidfVectorizer(stop_words='english', max_features=20000)
+X_train_tfidf = tfidf.fit_transform(X_train_raw)
+X_test_tfidf = tfidf.transform(X_test_raw)
+
+lr = LogisticRegression(C=1.0, max_iter=1000, random_state=SEED)
+lr.fit(X_train_tfidf, y_train)
+y_pred_lr = lr.predict(X_test_tfidf)
+acc_lr = accuracy_score(y_test, y_pred_lr)
+time_lr = time.time() - start
+print(f"准确率: {acc_lr:.4f}, 训练耗时: {time_lr:.2f}s")
+
+# ==================== 3. 深度模型预处理（PyTorch） ====================
+MAX_VOCAB = 20000
+MAX_LEN = 200
+
+# 用 CountVectorizer 获得词汇表（预留 <PAD> 和 <OOV>）
+vectorizer = CountVectorizer(max_features=MAX_VOCAB - 2, stop_words='english')
+vectorizer.fit(X_train_raw)
+vocab = vectorizer.vocabulary_
+
+# 构建词索引映射，加入特殊 token
+word2idx = {'<PAD>': 0, '<OOV>': 1}
+for word, idx in sorted(vocab.items(), key=lambda x: x[1]):
+    word2idx[word] = idx + 2      # 偏移2
+idx2word = {v: k for k, v in word2idx.items()}
+
+def text_to_sequence(text, max_len=MAX_LEN):
+    """将文本转为定长序列（截断或补零）"""
+    tokens = vectorizer.build_tokenizer()(text.lower())  # 与 CountVectorizer 相同的分词方式
+    seq = [word2idx.get(token, 1) for token in tokens]   # 1 是 <OOV>
+    if len(seq) > max_len:
+        seq = seq[:max_len]
+    else:
+        seq = seq + [0] * (max_len - len(seq))
+    return seq
+
+# 转换所有文本
+X_train_seq = [torch.tensor(text_to_sequence(text), dtype=torch.long) for text in X_train_raw]
+X_test_seq  = [torch.tensor(text_to_sequence(text), dtype=torch.long) for text in X_test_raw]
+
+class TextDataset(Dataset):
+    def __init__(self, sequences, labels):
+        self.sequences = sequences
+        self.labels = torch.tensor(labels, dtype=torch.float32)
+    def __len__(self):
+        return len(self.sequences)
+    def __getitem__(self, idx):
+        return self.sequences[idx], self.labels[idx]
+
+batch_size = 64
+train_dataset = TextDataset(X_train_seq, y_train)
+test_dataset = TextDataset(X_test_seq, y_test)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size)
+
+# ==================== 4. TextCNN ====================
+print("\n========== TextCNN (PyTorch) ==========")
+class TextCNN(nn.Module):
+    def __init__(self, vocab_size, embedding_dim=128, num_filters=128, kernel_size=5):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
+        self.conv = nn.Conv1d(in_channels=embedding_dim, out_channels=num_filters,
+                              kernel_size=kernel_size, padding=0)
+        self.fc1 = nn.Linear(num_filters, 64)
+        self.dropout = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(64, 1)
+
+    def forward(self, x):
+        emb = self.embedding(x)                     # (batch, seq_len, emb_dim)
+        emb = emb.permute(0, 2, 1)                  # (batch, emb_dim, seq_len)
+        conv_out = torch.relu(self.conv(emb))       # (batch, num_filters, new_len)
+        pooled = torch.max(conv_out, dim=2).values  # (batch, num_filters)
+        out = torch.relu(self.fc1(pooled))
+        out = self.dropout(out)
+        out = self.fc2(out)                         # (batch, 1)
+        return out.squeeze(1)                       # (batch,)
+
+def train_evaluate(model, train_loader, test_loader, epochs=10, lr=1e-3, patience=3):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    best_loss = float('inf')
+    patience_counter = 0
+    best_state = None
+
+    for epoch in range(epochs):
+        model.train()
+        train_loss = 0.0
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * inputs.size(0)
+        train_loss /= len(train_loader.dataset)
+
+        # 验证
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for inputs, labels in test_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                val_loss += loss.item() * inputs.size(0)
+        val_loss /= len(test_loader.dataset)
+
+        if val_loss < best_loss:
+            best_loss = val_loss
+            patience_counter = 0
+            best_state = model.state_dict()
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                break
+
+    model.load_state_dict(best_state)
+    # 评估准确率
+    model.eval()
+    all_preds, all_labels = [], []
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs = inputs.to(device)
+            outputs = model(inputs)
+            preds = (torch.sigmoid(outputs) > 0.5).long()
+            all_preds.extend(preds.cpu().tolist())
+            all_labels.extend(labels.long().tolist())
+    return accuracy_score(all_labels, all_preds)
+
+start = time.time()
+cnn_model = TextCNN(vocab_size=len(word2idx))
+acc_cnn = train_evaluate(cnn_model, train_loader, test_loader, epochs=10)
+time_cnn = time.time() - start
+print(f"准确率: {acc_cnn:.4f}, 训练耗时: {time_cnn:.2f}s")
+
+# ==================== 5. LSTM ====================
+print("\n========== LSTM (PyTorch) ==========")
+class LSTM(nn.Module):
+    def __init__(self, vocab_size, embedding_dim=128, hidden_dim=64):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True,
+                            bidirectional=True, dropout=0.3)
+        self.fc1 = nn.Linear(hidden_dim * 2, 64)
+        self.dropout = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(64, 1)
+
+    def forward(self, x):
+        emb = self.embedding(x)                              # (batch, seq_len, emb_dim)
+        lstm_out, _ = self.lstm(emb)                         # (batch, seq_len, hidden_dim*2)
+        last_out = lstm_out[:, -1, :]                        # 取最后一个时间步的输出
+        out = torch.relu(self.fc1(last_out))
+        out = self.dropout(out)
+        out = self.fc2(out)
+        return out.squeeze(1)
+
+start = time.time()
+lstm_model = LSTM(vocab_size=len(word2idx))
+acc_lstm = train_evaluate(lstm_model, train_loader, test_loader, epochs=10)
+time_lstm = time.time() - start
+print(f"准确率: {acc_lstm:.4f}, 训练耗时: {time_lstm:.2f}s")
+
+# ==================== 6. DistilBERT 微调（PyTorch） ====================
+print("\n========== DistilBERT 微调 (PyTorch) ==========")
+acc_bert, time_bert = None, None
+try:
+    from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification, AdamW
+
+    tokenizer_bert = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
+    model_bert = DistilBertForSequenceClassification.from_pretrained(
+        'distilbert-base-uncased', num_labels=1
+    )
+
+    def encode_dataset(texts, labels, max_length=256):
+        encodings = tokenizer_bert(texts, padding=True, truncation=True, max_length=max_length,
+                                   return_tensors='pt')
+        dataset = torch.utils.data.TensorDataset(
+            encodings['input_ids'],
+            encodings['attention_mask'],
+            torch.tensor(labels, dtype=torch.float32)
+        )
+        return dataset
+
+    train_dataset_bert = encode_dataset(X_train_raw, y_train)
+    test_dataset_bert = encode_dataset(X_test_raw, y_test)
+    train_loader_bert = DataLoader(train_dataset_bert, batch_size=16, shuffle=True)
+    test_loader_bert = DataLoader(test_dataset_bert, batch_size=32)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model_bert.to(device)
+    optimizer = AdamW(model_bert.parameters(), lr=2e-5)
+    criterion = nn.BCEWithLogitsLoss()
+
+    start = time.time()
+    epochs_bert = 3
+    for epoch in range(epochs_bert):
+        model_bert.train()
+        total_loss = 0.0
+        for batch in train_loader_bert:
+            input_ids, attention_mask, labels = [b.to(device) for b in batch]
+            optimizer.zero_grad()
+            outputs = model_bert(input_ids, attention_mask=attention_mask)
+            logits = outputs.logits.squeeze(1)
+            loss = criterion(logits, labels)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item() * input_ids.size(0)
+        avg_loss = total_loss / len(train_loader_bert.dataset)
+
+    # 评估
+    model_bert.eval()
+    all_preds, all_labels = [], []
+    with torch.no_grad():
+        for batch in test_loader_bert:
+            input_ids, attention_mask, labels = [b.to(device) for b in batch]
+            logits = model_bert(input_ids, attention_mask=attention_mask).logits.squeeze(1)
+            preds = (torch.sigmoid(logits) > 0.5).long()
+            all_preds.extend(preds.cpu().tolist())
+            all_labels.extend(labels.long().tolist())
+    acc_bert = accuracy_score(all_labels, all_preds)
+    time_bert = time.time() - start
+    print(f"准确率: {acc_bert:.4f}, 训练耗时: {time_bert:.2f}s")
+
+except ImportError:
+    print("未安装 transformers，跳过 BERT 微调。")
+except Exception as e:
+    print(f"BERT 训练出错: {e}")
+
+# ==================== 7. 效果对比 ====================
+print("\n==================== 效果对比 ====================")
+print(f"{'方法':<30} {'准确率':<10} {'训练耗时(s)':<15}")
+print("-" * 55)
+print(f"{'TF-IDF + LogisticRegression':<30} {acc_lr:<10.4f} {time_lr:<15.2f}")
+print(f"{'TextCNN (PyTorch)':<30} {acc_cnn:<10.4f} {time_cnn:<15.2f}")
+print(f"{'LSTM (PyTorch)':<30} {acc_lstm:<10.4f} {time_lstm:<15.2f}")
+if acc_bert is not None:
+    print(f"{'DistilBERT 微调 (PyTorch)':<30} {acc_bert:<10.4f} {time_bert:<15.2f}")

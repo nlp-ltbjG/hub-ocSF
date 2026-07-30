@@ -1,0 +1,119 @@
+import json
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import torch
+from torch.utils.data import DataLoader, Dataset
+from transformers import BertTokenizerFast
+
+
+def load_label_names(data_dir: Path) -> List[str]:
+    with open(data_dir / "label_names.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+class PeopleDailyDataset(Dataset):
+    def __init__(
+            self,
+            records: List[Dict],
+            tokenizer: BertTokenizerFast,
+            label2id: Dict[str, int],
+            max_length: int = 128,
+    ):
+        self.records = records
+        self.tokenizer = tokenizer
+        self.label2id = label2id
+        self.max_length = max_length
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getitem__(self, idx: int) -> Dict:
+        row = self.records[idx]
+        tokens: List[str] = row["tokens"]
+        ner_tags: List[str] = row["ner_tags"]
+
+        label_ids = [self.label2id.get(tag, 0) for tag in ner_tags]
+
+        encoding = self.tokenizer(
+            tokens,
+            is_split_into_words=True,
+            max_length=self.max_length,
+            truncation=True,
+            padding="max_length",
+            return_tensors="pt",
+        )
+
+        word_ids = encoding.word_ids(batch_index=0)
+        aligned_labels: List[int] = []
+        prev_word_id = None
+        for wid in word_ids:
+            if wid is None:
+                aligned_labels.append(-100)
+            elif wid != prev_word_id:
+                aligned_labels.append(label_ids[wid] if wid < len(label_ids) else -100)
+                prev_word_id = wid
+            else:
+                aligned_labels.append(-100)
+
+        labels_tensor = torch.tensor(aligned_labels, dtype=torch.long)
+
+        return {
+            "input_ids": encoding["input_ids"].squeeze(0),
+            "attention_mask": encoding["attention_mask"].squeeze(0),
+            "token_type_ids": encoding["token_type_ids"].squeeze(0),
+            "labels": labels_tensor,
+            "raw_tokens": tokens,
+            "raw_labels": ner_tags,
+        }
+
+
+def collate_fn(batch: List[Dict]) -> Dict:
+    """Custom collate function to handle variable-length raw data."""
+    # Stack tensor fields
+    input_ids = torch.stack([item["input_ids"] for item in batch])
+    attention_mask = torch.stack([item["attention_mask"] for item in batch])
+    token_type_ids = torch.stack([item["token_type_ids"] for item in batch])
+    labels = torch.stack([item["labels"] for item in batch])
+
+    # Keep raw data as lists
+    raw_tokens = [item["raw_tokens"] for item in batch]
+    raw_labels = [item["raw_labels"] for item in batch]
+
+    return {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "token_type_ids": token_type_ids,
+        "labels": labels,
+        "raw_tokens": raw_tokens,
+        "raw_labels": raw_labels,
+    }
+
+
+def load_records(split: str, data_dir: Optional[Path] = None) -> List[Dict]:
+    data_dir = data_dir or Path(__file__).resolve().parent.parent / "data" / "peoples_daily"
+    with open(data_dir / f"{split}.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def build_dataloaders(
+        tokenizer: BertTokenizerFast,
+        label2id: Dict[str, int],
+        batch_size: int = 32,
+        max_length: int = 128,
+        data_dir: Optional[Path] = None,
+):
+    data_dir = data_dir or Path(__file__).resolve().parent.parent / "data" / "peoples_daily"
+    train_records = load_records("train", data_dir)
+    val_records = load_records("validation", data_dir)
+    test_records = load_records("test", data_dir)
+
+    train_ds = PeopleDailyDataset(train_records, tokenizer, label2id, max_length)
+    val_ds = PeopleDailyDataset(val_records, tokenizer, label2id, max_length)
+    test_ds = PeopleDailyDataset(test_records, tokenizer, label2id, max_length)
+
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=0, collate_fn=collate_fn)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=0, collate_fn=collate_fn)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=0, collate_fn=collate_fn)
+
+    return train_loader, val_loader, test_loader

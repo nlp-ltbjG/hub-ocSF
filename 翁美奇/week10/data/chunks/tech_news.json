@@ -1,0 +1,227 @@
+[
+  {
+    "content": "中国AI模型在美国市场受欢迎程度持续上升。业内人士指出，目前中国部分头部开源及开放权重模型的性能与OpenAI、Anthropic等美国顶尖前沿模型的技术差距约6至9个月，而定价却低60%至90%，并且可覆盖绝大多数常规AI工作任务，因此深受美国企业的青睐。",
+    "metadata": {
+      "page_num": 1,
+      "section": "中国AI模型竞争力",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "每日经济新闻",
+      "date": "2026-07-09",
+      "topic": "AI大模型",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_001"
+  },
+  {
+    "content": "工信部网络安全威胁和漏洞信息共享平台发布关于防范AI编程工具Claude Code安全后门隐患的风险提示。监测发现，AI编程工具Claude Code存在安全后门隐患，危害严重。Claude Code是美国Anthropic公司开发的AI编程工具，可根据文字需求自主完成代码编写、修复等工作。由于其内置了监控机制，未经用户同意即可向远程服务器回传用户地域、身份标识等敏感信息，受影响的Claude Code为2.1.91至2.1.196版本。",
+    "metadata": {
+      "page_num": 1,
+      "section": "AI安全",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "工信部",
+      "date": "2026-07-08",
+      "topic": "AI安全",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_002"
+  },
+  {
+    "content": "\"物理AI第一股\"Momenta正式登陆港交所。基石投资者阵容包括GIC、富达国际、梅赛德斯-奔驰、华夏基金等业内顶尖机构。Momenta专注于自动驾驶领域，致力于让AI理解物理世界并安全行动。行业分析人士认为，Momenta上市标志着市场开始认可让AI理解物理世界并安全行动这件事值得一个单独的估值体系。",
+    "metadata": {
+      "page_num": 1,
+      "section": "AI企业上市",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "每日经济新闻",
+      "date": "2026-07-08",
+      "topic": "自动驾驶",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_003"
+  },
+  {
+    "content": "联想集团2025/26财年全年营收5899亿元人民币、同比增长20.3%，首次突破5000亿元并进一步逼近6000亿元关口；调整后净利润同比增长42.1%，创历史新高。第四财季营收近1500亿元人民币、同比增长27.1%，创近20个季度最高增速。AI相关业务全年收入同比增长105%，AI收入占比提升至38%。",
+    "metadata": {
+      "page_num": 1,
+      "section": "联想AI业务",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "中国经济新闻网",
+      "date": "2026-06-05",
+      "topic": "AI基础设施",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_004"
+  },
+  {
+    "content": "联想AI服务器全年收入同比增长50%，订单储备超过1400亿元人民币。海神液冷业务全年实现双位数增长。2026年4月初联想完成对Infinidat的收购，进一步补强高端企业级存储产品矩阵，并加强从数据中心到边缘侧的推理优化布局。",
+    "metadata": {
+      "page_num": 1,
+      "section": "联想AI算力",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "中国经济新闻网",
+      "date": "2026-06-05",
+      "topic": "AI算力",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_005"
+  },
+  {
+    "content": "联想SSG方案服务业务集团连续第20个季度实现双位数增长，运营利润率达到22.4%。全年SSG营收突破710亿元人民币。围绕xIQ平台、AI智能云超级工厂与AI应用库构建的混合式AI解决方案能力，已在制造、零售、体育及智慧城市等行业进入规模化复制阶段。2026年FIFA世界杯期间，联想集团以官方技术合作伙伴身份提供AI视频增强系统、3D数字人可视化方案与横跨三国的智能指挥中心。",
+    "metadata": {
+      "page_num": 1,
+      "section": "联想AI服务",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "中国经济新闻网",
+      "date": "2026-06-05",
+      "topic": "AI服务",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_006"
+  },
+  {
+    "content": "Perplexity自研AI编程工具Teammate曝光，正式入局代码开发赛道。该工具面向长期工程研发场景打造，可统筹软件项目全流程工作，覆盖项目整体管理、代码故障排查、线上服务实时监控等核心开发环节。该工具具备多模型兼容特性，无单一大模型绑定限制，适配不同技术开发需求。Perplexity完成上一轮融资后估值达200亿美元。",
+    "metadata": {
+      "page_num": 1,
+      "section": "AI编程工具",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "环球网",
+      "date": "2026-07-09",
+      "topic": "AI编程",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_007"
+  },
+  {
+    "content": "Perplexity首席技术官丹尼斯·亚拉茨提出预判，最晚于2026年年底，软件工程师可依托AI完成开发工作，无需人工逐行查阅代码。针对市场上\"AI生成代码质量差、安全漏洞多\"的普遍质疑，他认为只要AI产出代码能够完整通过各类标准化质量检测，便不存在代码劣质的问题。",
+    "metadata": {
+      "page_num": 1,
+      "section": "AI编程展望",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "环球网",
+      "date": "2026-07-09",
+      "topic": "AI编程",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_008"
+  },
+  {
+    "content": "亿道信息正式启动Agent One项目，打造端侧AI中枢，开启智能代理新时代。该项目坚持\"端侧优先、本地推理为主、云端兜底\"的混合执行模式，核心优势包括：本地推理优先可充分利用端侧设备闲置算力，大幅降低云端调用成本与token费用；可离线执行，即使无网络环境，核心功能与本地模型仍可稳定运行；隐私数据不出设备，关键信息本地处理，从根源杜绝云端泄露风险。",
+    "metadata": {
+      "page_num": 1,
+      "section": "智能代理",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "宿迁网",
+      "date": "2026-03-27",
+      "topic": "AI代理",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_009"
+  },
+  {
+    "content": "亿道信息计划于2026年7月上海WAIC（世界人工智能大会）上正式展示Agent One产品。公司已在AIGC内容生成、大模型驱动数字人、端侧语音交互、数字生命系统及多模态智能体等赛道取得突破性进展，形成了自主可控的技术供给能力。",
+    "metadata": {
+      "page_num": 1,
+      "section": "Agent One展示",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "宿迁网",
+      "date": "2026-03-27",
+      "topic": "AI代理",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_010"
+  },
+  {
+    "content": "中国AI基础设施产业从概念探索阶段进入规模商业兑现阶段。华为、阿里巴巴、腾讯控股、百度、字节跳动、联想集团六大中国AI基础设施代表性企业，以\"AI终端+AI算力+AI服务\"全栈AI能力体系为骨架，共同呈现中国AI产业的规模化发展态势。",
+    "metadata": {
+      "page_num": 1,
+      "section": "中国AI产业",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "中国经济新闻网",
+      "date": "2026-06-05",
+      "topic": "AI产业",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_011"
+  },
+  {
+    "content": "联想集团以AI PC为入口，正以\"一体多端\"战略推进端侧AI部署。超级智能体Lenovo Qira预计在2026/27财年第一财季面向符合条件的设备开展部署；天禧4.0已于2026年5月19日发布，并搭载新一代Agent核心天禧Claw。",
+    "metadata": {
+      "page_num": 1,
+      "section": "联想AI终端",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "中国经济新闻网",
+      "date": "2026-06-05",
+      "topic": "AI终端",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_012"
+  },
+  {
+    "content": "美国头部AI厂商模型定价持续上涨，给企业带来了较大的成本压力。相比之下，中国AI模型以其高性价比优势，正在获得更多美国企业的青睐。这一趋势揭示了全球AI新格局的形成：效率驱动型发展路线正在获得市场认可，不再是实验室里的参数竞赛，而是真实场景中的成本与效用的博弈。",
+    "metadata": {
+      "page_num": 1,
+      "section": "AI市场竞争",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "每日经济新闻",
+      "date": "2026-07-09",
+      "topic": "AI市场",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_013"
+  },
+  {
+    "content": "AI编程工具市场竞争日益激烈。目前已有多家企业推出了成熟的AI编程产品，包括Cursor、Anthropic的Claude Code、OpenAI的相关工具等。Perplexity的Teammate若正式对外发布，将与这些产品形成直接竞争。",
+    "metadata": {
+      "page_num": 1,
+      "section": "AI编程竞争",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "环球网",
+      "date": "2026-07-09",
+      "topic": "AI编程",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_014"
+  },
+  {
+    "content": "端侧AI成为行业新趋势。越来越多的企业开始重视端侧AI的发展，将智能能力下沉至设备端。端侧AI具有本地推理优先、可离线执行、隐私数据不出设备等优势，被认为是下一代人机交互的重要方向。",
+    "metadata": {
+      "page_num": 1,
+      "section": "端侧AI",
+      "block_types": ["paragraph"],
+      "is_ocr": false,
+      "source": "宿迁网",
+      "date": "2026-03-27",
+      "topic": "端侧AI",
+      "strategy": "semantic",
+      "source_file": "tech_news.json"
+    },
+    "chunk_id": "tech_015"
+  }
+]

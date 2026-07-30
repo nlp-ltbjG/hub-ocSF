@@ -1,0 +1,83 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+
+# ===================== 1. 超参数设置 =====================
+INPUT_DIM = 10    # 随机向量维度（输入特征数）
+NUM_CLASSES = 10  # 分类类别数（和维度一致，第0维最大=0类，第9维最大=9类）
+BATCH_SIZE = 32
+EPOCHS = 20
+LR = 0.001
+
+# ===================== 2. 生成数据集（核心逻辑） =====================
+def generate_data(batch_size):
+    """
+    生成随机向量 + 对应标签
+    标签规则：向量中 数值最大的维度索引 = 类别
+    """
+    # 生成标准正态分布随机向量 (batch, 输入维度)
+    data = torch.randn(batch_size, INPUT_DIM)
+    # 找到每一行最大值的索引，作为标签 (batch,)
+    labels = torch.argmax(data, dim=1)
+    return data, labels
+
+# ===================== 3. 定义简单分类模型 =====================
+# 全连接网络：输入维度 → 隐藏层 → 输出类别数
+class Classifier(nn.Module):
+    def __init__(self, input_dim, num_classes):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(input_dim, 32),
+            nn.ReLU(),
+            nn.Linear(32, num_classes)
+        )
+
+    def forward(self, x):
+        return self.model(x)
+
+# ===================== 4. 初始化训练组件 =====================
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = Classifier(INPUT_DIM, NUM_CLASSES).to(device)
+# 多分类标准损失函数：交叉熵损失（自带Softmax）
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=LR)
+
+# ===================== 5. 开始训练 =====================
+print("开始训练...\n")
+for epoch in range(EPOCHS):
+    model.train()
+    # 生成一批训练数据
+    data, labels = generate_data(BATCH_SIZE)
+    data, labels = data.to(device), labels.to(device)
+
+    # 前向传播
+    outputs = model(data)
+    loss = criterion(outputs, labels)
+
+    # 反向传播 + 优化
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    # 计算准确率
+    preds = torch.argmax(outputs, dim=1)
+    acc = (preds == labels).float().mean()
+
+    # 打印日志
+    print(f"Epoch [{epoch+1:2d}/{EPOCHS}] | Loss: {loss.item():.4f} | Acc: {acc.item():.4f}")
+
+# ===================== 6. 测试模型 =====================
+print("\n===== 模型测试 =====")
+model.eval()
+with torch.no_grad():
+    test_data, test_labels = generate_data(10)
+    test_data = test_data.to(device)
+    test_preds = torch.argmax(model(test_data), dim=1)
+
+    print("\n测试随机向量：")
+    for i in range(10):
+        vec = test_data[i].cpu().numpy()
+        true_label = test_labels[i].item()
+        pred_label = test_preds[i].item()
+        print(f"向量: {np.round(vec, 2)} | 真实类别: {true_label} | 预测类别: {pred_label}")

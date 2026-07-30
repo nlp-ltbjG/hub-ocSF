@@ -1,0 +1,67 @@
+  "dataset": "LCQMC",
+  "method": "TF-IDF Baseline",
+  "epoch": 1,
+  "train_loss": null,
+  "train_acc": 0.6845,
+  "val_acc": 0.6912,
+  "val_f1": 0.6895,
+  "elapsed_s": 45.21
+
+
+
+  "dataset": "LCQMC",
+  "method": "Sentence-BERT",
+  "epoch": 1,
+  "train_loss": null,
+  "train_acc": 0.7834,
+  "val_acc": 0.7915,
+  "val_f1": 0.7908,
+  "elapsed_s": 1850.45
+
+
+
+  "dataset": "LCQMC",
+  "method": "BERT-FineTune",
+  "epoch": 1,
+  "train_loss": 0.4977,
+  "train_acc": 0.7522,
+  "val_acc": 0.8119,
+  "val_f1": 0.8119,
+  "elapsed_s": 12275.27
+
+
+
+
+
+
+
+  "dataset": "BQ",
+  "method": "TF-IDF Baseline",
+  "epoch": 1,
+  "train_loss": null,
+  "train_acc": 0.7120,
+  "val_acc": 0.7185,
+  "val_f1": 0.7150,
+  "elapsed_s": 38.55
+
+
+
+  "dataset": "BQ",
+  "method": "Sentence-BERT",
+  "epoch": 1,
+  "train_loss": null,
+  "train_acc": 0.8012,
+  "val_acc": 0.8105,
+  "val_f1": 0.8098,
+  "elapsed_s": 1720.33
+
+
+
+  "dataset": "BQ",
+  "method": "BERT-FineTune",
+  "epoch": 1,
+  "train_loss": 0.4215,
+  "train_acc": 0.8055,
+  "val_acc": 0.8542,
+  "val_f1": 0.8538,
+  "elapsed_s": 11850.66
