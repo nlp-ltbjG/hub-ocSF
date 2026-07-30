@@ -1,5 +1,22 @@
-# Harness: progressive skill loader and executor
-# Scans skills/*/SKILL.md, parses YAML frontmatter, builds registry, executes skills
+"""
+渐进式加载执行skills的harness
+
+启动 Harness
+  |
+扫描 skills/*/SKILL.md
+  |
+解析 YAML Frontmatter, 构建技能注册表 (name, desc, params, 模块路径)
+  |
+对外提供技能列表 / 执行接口
+  |
+用户请求执行技能 "foo"
+  |
+从注册表获取 "foo" 的模块路径
+  |
+动态 import(路径), 获取执行函数
+  |
+校验参数, 执行, 返回结果
+"""
 
 from pathlib import Path
 import importlib
