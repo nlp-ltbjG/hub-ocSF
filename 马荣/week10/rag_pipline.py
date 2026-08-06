@@ -183,7 +183,7 @@ def reciprocal_rank_fusion(
         cid = item["chunk_id"]
         rrf_scores[cid] = rrf_scores.get(cid, 0) + 1 / (k + rank)
         chunk_map[cid]  = item
-
+        
     sorted_cids = sorted(rrf_scores, key=lambda x: -rrf_scores[x])
     results = []
     for cid in sorted_cids:
