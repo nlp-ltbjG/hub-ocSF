@@ -20,6 +20,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from llm import chat
 from sub_agents import exec_subagent
 
+from dotenv import load_dotenv
+
 MAX_REACT_STEPS = 3  # ReAct 最大行动轮次
 
 
@@ -105,6 +107,10 @@ Action 2: <numeric_expert 或 rag_expert>
 Action Input 2: <交给子 Agent 2 的输入>
 ...（依需继续）
 
+【重要】输出完 Action Input 后必须立即停止，不要自己编写 Observation！
+系统会自动执行这些子 Agent 并把真实结果作为 Observation 返回给你。
+你绝对不能自己生成 Observation 行，否则结果会作废。
+
 当你已收集到足够信息可以回答用户时，输出：
 Thought: <推理摘要>
 Final Answer: <给用户的最终回答，需包含：结论、数值依据、文本依据>
@@ -112,6 +118,7 @@ Final Answer: <给用户的最终回答，需包含：结论、数值依据、�
 规则：
 - 不要编造数值，所有数值必须来自 numeric_expert 的计算结果。
 - 文本依据必须来自 rag_expert 的检索结果。
+- 绝不要自己写 Observation，那是由系统注入的。
 - 最多进行 {max_steps} 步行动。"""
 
 
@@ -130,7 +137,8 @@ def react_run(question: str, parallel: bool = True) -> str:
     total_wall, total_serial = 0.0, 0.0
 
     for step in range(1, MAX_REACT_STEPS + 1):
-        resp = chat(messages, temperature=0.3)
+        # stop 序列：LLM 想写 "Observation:" 时立即截断，强制交还控制权由系统执行子 Agent
+        resp = chat(messages, temperature=0.3, stop=["Observation:"])
         text = resp.choices[0].message.content.strip()
         trace.append(text)
 

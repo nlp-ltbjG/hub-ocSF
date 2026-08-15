@@ -6,6 +6,15 @@
 """
 import os
 import json
+from pathlib import Path
+
+import faiss
+import numpy as np
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# 加载 .env（与 src/ 同级）
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 # ========== 数值计算工具 ==========
@@ -76,63 +85,58 @@ NUMERIC_TOOL_MAP = {
 }
 
 
-# ========== RAG 检索工具 ==========
+# ========== RAG 检索工具（原生 faiss + openai SDK）==========
 
-_VECTORSTORE = None
-_EMBEDDINGS = None
+_FAISS_INDEX = None
+_FAISS_META = None
+_EMB_CLIENT = None
 
-
-def _get_embeddings():
-    """获取 embedding 模型（必须与建库时使用的模型一致）。
-
-    通过环境变量配置：
-      EMBEDDING_MODEL    : embedding 模型名（默认 text-embedding-3-small）
-      EMBEDDING_API_KEY  : embedding 服务密钥（默认回退 OPENAI_API_KEY）
-      EMBEDDING_BASE_URL : embedding 服务地址（默认回退 OpenAI 官方）
-    """
-    global _EMBEDDINGS
-    if _EMBEDDINGS is not None:
-        return _EMBEDDINGS
-    from langchain_openai import OpenAIEmbeddings
-
-    kwargs = {"model": os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")}
-    if os.getenv("EMBEDDING_API_KEY") or os.getenv("OPENAI_API_KEY"):
-        kwargs["api_key"] = os.getenv("EMBEDDING_API_KEY") or os.getenv("OPENAI_API_KEY")
-    if os.getenv("EMBEDDING_BASE_URL"):
-        kwargs["base_url"] = os.getenv("EMBEDDING_BASE_URL")
-    _EMBEDDINGS = OpenAIEmbeddings(**kwargs)
-    return _EMBEDDINGS
+# embedding 配置：用 openai SDK 调 DashScope 兼容端点（与建库时一致：text-embedding-v3，1024 维）
+_EMB_BASE_URL = os.getenv(
+    "EMBEDDING_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+).strip()
+_EMB_API_KEY = (
+    os.getenv("EMBEDDING_API_KEY") or os.getenv("DASHSCOPE_API_KEY") or ""
+).strip()
+_EMB_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-v3").strip()
 
 
-def _get_vectorstore():
-    """加载 FAISS 向量库（LangChain 存储格式：index.faiss + index.pkl）"""
-    global _VECTORSTORE
-    if _VECTORSTORE is not None:
-        return _VECTORSTORE
-    from langchain_community.vectorstores import FAISS
-
-    base = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "vectorstore", "faiss_lc"
-    )
-    _VECTORSTORE = FAISS.load_local(
-        base, _get_embeddings(), allow_dangerous_deserialization=True
-    )
-    return _VECTORSTORE
+def _load_vectorstore():
+    """加载原生 FAISS 索引 + 元数据（vectorstore/faiss_index.bin + faiss_meta.json）"""
+    global _FAISS_INDEX, _FAISS_META, _EMB_CLIENT
+    if _FAISS_INDEX is None:
+        base = Path(__file__).resolve().parent.parent / "vectorstore"
+        _FAISS_INDEX = faiss.read_index(str(base / "faiss_index.bin"))
+        with open(base / "faiss_meta.json", encoding="utf-8") as f:
+            _FAISS_META = json.load(f)
+        _EMB_CLIENT = OpenAI(api_key=_EMB_API_KEY, base_url=_EMB_BASE_URL)
+    return _FAISS_INDEX, _FAISS_META, _EMB_CLIENT
 
 
 def rag_search(query: str, k: int = 4) -> dict:
-    """从财报向量库检索与 query 最相关的 k 条文本片段"""
-    vs = _get_vectorstore()
-    docs = vs.similarity_search(query, k=k)
+    """从财报向量库检索与 query 最相关的 k 条文本片段。
+
+    流程：openai SDK 生成 query 向量 → 原生 faiss 检索 → 从 faiss_meta.json 取元数据。
+    """
+    idx, meta, emb_client = _load_vectorstore()
+    # 1. query 向量化（DashScope 兼容端点，默认 1024 维与索引对齐）
+    resp = emb_client.embeddings.create(model=_EMB_MODEL, input=query)
+    qvec = np.array(resp.data[0].embedding, dtype="float32").reshape(1, -1)
+    # 2. faiss 检索
+    D, I = idx.search(qvec, k)
+    # 3. 组装结果
     results = []
-    for d in docs:
-        m = d.metadata or {}
+    for dist, i in zip(D[0], I[0]):
+        if i < 0 or i >= len(meta):
+            continue
+        m = meta[i]
         results.append(
             {
-                "content": d.page_content,
+                "content": m.get("content", ""),
                 "stock_code": m.get("stock_code"),
                 "year": m.get("year"),
                 "section": m.get("section"),
+                "score": float(dist),
             }
         )
     return {"query": query, "count": len(results), "results": results}
